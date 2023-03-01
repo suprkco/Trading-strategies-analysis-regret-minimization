@@ -1,68 +1,168 @@
 import numpy as np
 
 # Stratégie de liquidité élevée :
-def high_liquidity_strategy(volume, price, daily_volume, support, resistance, volatility):
+def high_liquidity_strategy(portfolio, balance, price, daily_volume, support, resistance, volatility):
     max_liquidity = daily_volume * 0.05
     limit_price = support + (resistance - support) * 0.25
-    if volume <= max_liquidity and price <= limit_price + volatility:
-        return 'buy'
-    elif volume <= max_liquidity and price >= limit_price - volatility:
-        return 'sell'
-    else:
-        return 'hold'
+    stock_to_trade = None
+    quantity_to_trade = 0
+    
+    for stock in portfolio:
+        volume = portfolio[stock]
+        if volume == 0:
+            continue
+        if volume <= max_liquidity and price <= limit_price + volatility:
+            max_buy_quantity = int(balance / price)
+            quantity = min(max_buy_quantity, int(balance * 0.25 / price))
+            if quantity > 0:
+                stock_to_trade = stock
+                quantity_to_trade = quantity
+                break
+        elif volume <= max_liquidity and price >= limit_price - volatility:
+            if balance > 0:
+                quantity = min(balance, int(balance * 0.25 / price))
+                if quantity > 0:
+                    stock_to_trade = stock
+                    quantity_to_trade = -quantity
+                    break
+        else:
+            continue
+    
+    return stock_to_trade, quantity_to_trade
+
 
 # Stratégie de liquidité faible :
-def low_liquidity_strategy(volume, price, daily_volume, target_price):
+def low_liquidity_strategy(portfolio, balance, price, daily_volume, target_price):
     max_quantity = 100
-    if price <= target_price:
-        return 'buy', min(max_quantity, int(max_quantity * (target_price - price) / target_price))
-    elif price >= target_price:
-        return 'sell', min(max_quantity, int(max_quantity * (price - target_price) / target_price))
-    else:
-        return 'hold', 0
+    stock_to_trade = None
+    quantity_to_trade = 0
+    
+    for stock in portfolio:
+        volume = portfolio[stock]
+        if volume == 0:
+            continue
+        if price <= target_price:
+            max_buy_quantity = int(balance / price)
+            quantity = min(max_buy_quantity, max_quantity)
+            if quantity > 0:
+                stock_to_trade = stock
+                quantity_to_trade = quantity
+                break
+        elif price >= target_price:
+            max_sell_quantity = volume
+            quantity = min(max_sell_quantity, max_quantity)
+            if quantity > 0:
+                stock_to_trade = stock
+                quantity_to_trade = -quantity
+                break
+        else:
+            continue
+    
+    return stock_to_trade, quantity_to_trade
 
 # Stratégie de réaction rapide :
-def fast_reaction_strategy(volume, price, daily_volume, volatility):
-    if price >= price + volatility:
-        return 'sell'
-    elif price <= price - volatility:
-        return 'buy'
-    else:
-        return 'hold'
+def fast_reaction_strategy(portfolio, balance, price, daily_volume, volatility):
+    max_quantity = int(balance / price)
+    stock_to_trade = None
+    quantity_to_trade = 0
     
-# Stategie de suivie de tendance :
-def trend_following_strategy(prices, window_size):
-    if len(prices) < window_size:
-        return 'hold'
-
-    returns = np.diff(prices) / prices[:-1]
-    mean_return = np.mean(returns)
-    std_return = np.std(returns)
-    threshold = mean_return - 2 * std_return
-
-    if returns[-1] < threshold:
-        return 'sell'
-    elif returns[-1] > threshold:
-        return 'buy'
+    if price >= price + volatility:
+        for stock in portfolio:
+            volume = portfolio[stock]
+            if volume == 0:
+                continue
+            if balance > 0:
+                stock_to_trade = stock
+                quantity_to_trade = -max_quantity
+                break
+    elif price <= price - volatility:
+        for stock in portfolio:
+            volume = portfolio[stock]
+            if volume == 0:
+                continue
+            max_buy_quantity = int(balance / price)
+            quantity = min(max_buy_quantity, max_quantity)
+            if quantity > 0:
+                stock_to_trade = stock
+                quantity_to_trade = quantity
+                break
     else:
-        return 'hold'
+        pass
+    
+    return stock_to_trade, quantity_to_trade
 
-# Stratégie de prise de risque élevée :
-def high_risk_strategy(volume, price, daily_volume, support, resistance, volatility):
-    limit_price = support + (resistance - support) * 0.75
-    if price >= limit_price:
-        return 'buy'
-    elif price <= support:
-        return 'sell'
-    else:
-        return 'hold'
+# Stratégie de suivi de tendance :
+def trend_following_strategy(portfolio, balance, price, daily_volume, support, resistance, volatility):
+    stock_to_trade = None
+    quantity_to_trade = 0
+    
+    if price > resistance + volatility:
+        for stock in portfolio:
+            if portfolio[stock] > 0:
+                stock_to_trade = stock
+                quantity_to_trade = -portfolio[stock]
+                break
+    elif price < support - volatility:
+        max_buy_quantity = int(balance / price)
+        quantity = min(max_buy_quantity, int(balance * 0.25 / price))
+        for stock in portfolio:
+            if portfolio[stock] == 0 and quantity > 0:
+                stock_to_trade = stock
+                quantity_to_trade = quantity
+                break
+    
+    return stock_to_trade, quantity_to_trade
 
-# Stratégie de prise de risque faible :
-def low_risk_strategy(volume, price, daily_volume, support, resistance, volatility):
+
+# Stratégie de risque élevé :
+def high_risk_strategy(portfolio, balance, price, daily_volume, support, resistance, volatility):
+    stock_to_trade = None
+    quantity_to_trade = 0
+    
+    for stock in portfolio:
+        if portfolio[stock] > 0:
+            stock_to_trade = stock
+            quantity_to_trade = -portfolio[stock]
+            break
+    
+    if stock_to_trade is None:
+        max_buy_quantity = int(balance / price)
+        quantity = min(max_buy_quantity, int(balance * 0.25 / price))
+        for stock in portfolio:
+            if portfolio[stock] == 0 and quantity > 0:
+                stock_to_trade = stock
+                quantity_to_trade = quantity
+                break
+    
+    return stock_to_trade, quantity_to_trade
+
+
+# Stratégie de risque faible :
+def low_risk_strategy(portfolio, balance, price, daily_volume, support, resistance, volatility):
+    max_liquidity = daily_volume * 0.05
     limit_price = support + (resistance - support) * 0.25
-    if price >= limit_price:
-        return 'sell'
-    elif price <= support:
-        return 'buy'
-    else:
-        return 'hold'
+    stock_to_trade = None
+    quantity_to_trade = 0
+    
+    for stock in portfolio:
+        volume = portfolio[stock]
+        if volume == 0:
+            continue
+        if volume <= max_liquidity and price <= limit_price + volatility:
+            max_buy_quantity = int(balance / price)
+            quantity = min(max_buy_quantity, int(balance * 0.25 / price))
+            if quantity > 0:
+                stock_to_trade = stock
+                quantity_to_trade = quantity
+                break
+        elif volume <= max_liquidity and price >= limit_price - volatility:
+            if balance > 0:
+                quantity = min(balance, int(balance * 0.25 / price))
+                if quantity > 0:
+                    stock_to_trade = stock
+                    quantity_to_trade = -quantity
+                    break
+        else:
+            continue
+    
+    return stock_to_trade, quantity_to_trade
