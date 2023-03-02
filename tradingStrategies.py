@@ -89,42 +89,6 @@ def low_liquidity_strategy(portfolio, balance, stockParameters):
     return stock_to_trade, quantity_to_trade
 
 
-# Stratégie de réaction rapide :
-def fast_reaction_strategy(portfolio, balance, stockParameters):
-    price = stockParameters['closePrice']
-    daily_volume = stockParameters['volume']
-    volatility = stockParameters['highPrice'] - stockParameters['lowPrice']
-    
-    max_quantity = int(balance / price)
-    stock_to_trade = None
-    quantity_to_trade = 0
-    
-    if price >= price + volatility:
-        for stock in portfolio:
-            volume = portfolio[stock]
-            if volume == 0:
-                continue
-            if balance > 0:
-                stock_to_trade = stock
-                quantity_to_trade = -max_quantity
-                break
-    elif price <= price - volatility:
-        for stock in portfolio:
-            volume = portfolio[stock]
-            if volume == 0:
-                continue
-            max_buy_quantity = int(balance / price)
-            quantity = min(max_buy_quantity, max_quantity)
-            if quantity > 0:
-                stock_to_trade = stock
-                quantity_to_trade = quantity
-                break
-    else:
-        pass
-    
-    return stock_to_trade, quantity_to_trade
-
-
 # Stategie de suivie de tendance :
 def trend_following_strategy(portfolio, balance, stockParameters):
     price = stockParameters['closePrice']

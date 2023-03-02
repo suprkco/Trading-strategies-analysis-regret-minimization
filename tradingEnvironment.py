@@ -5,14 +5,14 @@ import time
 import numpy as np
 import pandas as pd
 import yfinance as yf
-from tradingStrategies import high_liquidity_strategy, low_liquidity_strategy, fast_reaction_strategy, trend_following_strategy, high_risk_strategy, low_risk_strategy
+from tradingStrategies import high_liquidity_strategy, low_liquidity_strategy, trend_following_strategy, high_risk_strategy, low_risk_strategy
 import colorama
 
 # https://pypi.org/project/yfinance/ 
 
 
 # Initialisation de 100 traders equitablement répartis sur les stratégies
-traderStrategy = ['high_liquidity_strategy', 'low_liquidity_strategy', 'fast_reaction_strategy', 'trend_following_strategy', 'high_risk_strategy', 'low_risk_strategy']
+traderStrategy = ['high_liquidity_strategy', 'low_liquidity_strategy', 'trend_following_strategy', 'high_risk_strategy', 'low_risk_strategy']
 traders = {}
 tradersNumbers = 100
 for i in range(tradersNumbers):
@@ -28,8 +28,8 @@ companies = ['AAPL', 'MSFT', 'GOOG', 'AMZN']
 
 
 # Initialisation des paramètres de la simulation
-generationMax = 100 # Nombre de fois que la simulation est lancée en supprimant les 5% des traders les moins performants
-dayMax = 10 # nombre de jours de simulation par generation
+generationMax = 10 # Nombre de fois que la simulation est lancée en supprimant les 5% des traders les moins performants
+dayMax = 5 # nombre de jours de simulation par generation
 errorRate = 0.05 # taux d'erreur de la simulation
 
 
@@ -49,8 +49,11 @@ for generation in range(generationMax):
     currentDay = 0 # jour de la simulation
     
     
-    intevaleStock = '1d' # 1s d'intervalle de temps entre chaque observation des stocks
-    randomDate = datetime.datetime.strptime(random_date("1/1/2010 1:30 PM", "12/31/2019 4:50 AM", random.random()), '%m/%d/%Y %I:%M %p') # Date aléatoire de début de simulation (entre 2010 et 2019)
+    intevaleStock = '1m' # 1s d'intervalle de temps entre chaque observation des stocks
+    dateStart = (datetime.datetime.now() - datetime.timedelta(days=dayMax+1)).strftime('%m/%d/%Y %I:%M %p')
+    dateEnd = (datetime.datetime.now() - datetime.timedelta(days=30)).strftime('%m/%d/%Y %I:%M %p')
+    # randomDate = datetime.datetime.strptime(random_date("1/1/2010 1:30 PM", "12/31/2019 4:50 AM", random.random()), '%m/%d/%Y %I:%M %p') # Date aléatoire de début de simulation (entre 2010 et 2019)
+    randomDate = datetime.datetime.strptime(random_date(dateStart, dateEnd, random.random()), '%m/%d/%Y %I:%M %p') # Date aléatoire de début de simulation (entre 2010 et 2019)
     endDate = randomDate + datetime.timedelta(days=dayMax) # Date de fin de simulation
     
     
@@ -65,9 +68,16 @@ for generation in range(generationMax):
     
     # tant que le nombre de jours de simulation n'est pas atteint on acutalise le portefeuille de tout les traders
     while (currentDay < dayMax) & (stockIndex < len(stocks[company])):
-        
-        # initialisation des statistiques de la simulation
-        stats = {}
+        # initialisation des statistiques de la simulation, comptage des proportion de traders par stratégie
+        stats = {
+            'count': {
+                'high_liquidity_strategy': 0, 
+                'low_liquidity_strategy': 0, 
+                'trend_following_strategy': 0, 
+                'high_risk_strategy': 0, 
+                'low_risk_strategy': 0
+                }
+            }
         
         # actualisation du stock considéré comme actuel
         for company in companies:
@@ -104,9 +114,6 @@ for generation in range(generationMax):
                     }
                     
                 if stock_to_trade is not None:
-                    stats[strategyName]['balance'] += balance
-                    stats[strategyName]['portfolio'][stock_to_trade] += portfolio[stock_to_trade]
-                    
                     # actualisation du portefeuille du trader
                     if stock_to_trade == company:
                         # si le trader a choisi de vendre
@@ -131,27 +138,48 @@ for generation in range(generationMax):
                             else:
                                 portfolio[stock_to_trade] += int(balance / (1 + errorRate) / closePrice)
                                 balance -= (1 + errorRate) * portfolio[stock_to_trade] * closePrice
+                                
+                    # mise à jour du portefeuille du trader
                     traders[key]['portfolio'] = portfolio
-                    traders[key]['balance'] = balance         
-            
-            
-            # affichage des résultats et des statistiques de la simulation
-            os.system('cls' if os.name == 'nt' else 'clear')
-            print('Generation %i, Date: %s ,Jour %i/%i, traders proportions: %f/%f/%f/%f/%f/%f' % (generation, randomDate, currentDay, dayMax, 0, 0, 0, 0, 0, 0))
-            print('Moyenne des balances & portefeuilles:')
-            
-            high_liquidity_color = '\033[92m' if stats['high_liquidity_strategy']['balance'] > stats['low_liquidity_strategy']['balance'] else '\033[91m'
-            low_liquidity_color = '\033[92m' if stats['low_liquidity_strategy']['balance'] > stats['high_liquidity_strategy']['balance'] else '\033[91m'
-            fast_reaction_color = '\033[92m' if stats['fast_reaction_strategy']['balance'] > stats['high_liquidity_strategy']['balance'] else '\033[91m'
-            trend_following_color = '\033[92m' if stats['trend_following_strategy']['balance'] > stats['high_liquidity_strategy']['balance'] else '\033[91m'
-            high_risk_color = '\033[92m' if stats['high_risk_strategy']['balance'] > stats['high_liquidity_strategy']['balance'] else '\033[91m'
-            low_risk_color = '\033[92m' if stats['low_risk_strategy']['balance'] > stats['high_liquidity_strategy']['balance'] else '\033[91m'
-            
-            print('Strategy de haute liquidité: %s%f\033[0m, portefeuille moyens: %f/%f/%f/%f' % (high_liquidity_color, stats['high_liquidity_strategy']['balance'], stats['high_liquidity_strategy']['portfolio']['AAPL'], stats['high_liquidity_strategy']['portfolio']['MSFT'], stats['high_liquidity_strategy']['portfolio']['GOOG'], stats['high_liquidity_strategy']['portfolio']['AMZN']))
-            print('Strategy de basse liquidité: %s%f\033[0m, portefeuille moyens: %f/%f/%f/%f' % (low_liquidity_color, stats['low_liquidity_strategy']['balance'], stats['low_liquidity_strategy']['portfolio']['AAPL'], stats['low_liquidity_strategy']['portfolio']['MSFT'], stats['low_liquidity_strategy']['portfolio']['GOOG'], stats['low_liquidity_strategy']['portfolio']['AMZN']))
-            print('Strategy de réaction rapide: %s%f\033[0m, portefeuille moyens: %f/%f/%f/%f' % (fast_reaction_color, stats['fast_reaction_strategy']['balance'], stats['fast_reaction_strategy']['portfolio']['AAPL'], stats['fast_reaction_strategy']['portfolio']['MSFT'], stats['fast_reaction_strategy']['portfolio']['GOOG'], stats['fast_reaction_strategy']['portfolio']['AMZN']))
-            print('Strategy de suivi de tendance: %s%f\033[0m, portefeuille moyens: %f/%f/%f/%f' % (trend_following_color, stats['trend_following_strategy']['balance'], stats['trend_following_strategy']['portfolio']['AAPL'], stats['trend_following_strategy']['portfolio']['MSFT'], stats['trend_following_strategy']['portfolio']['GOOG'], stats['trend_following_strategy']['portfolio']['AMZN']))
-            print('Strategy à haut risque: %s%f\033[0m, portefeuille moyens: %f/%f/%f/%f' % (high_risk_color, stats['high_risk_strategy']['balance'], stats['high_risk_strategy']['portfolio']['AAPL'], stats['high_risk_strategy']['portfolio']['MSFT'], stats['high_risk_strategy']['portfolio']['GOOG'], stats['high_risk_strategy']['portfolio']['AMZN']))
-            print('Strategy à bas risque: %s%f\033[0m, portefeuille moyens: %f/%f/%f/%f' % (low_risk_color, stats['low_risk_strategy']['balance'], stats['low_risk_strategy']['portfolio']['AAPL'], stats['low_risk_strategy']['portfolio']['MSFT'], stats['low_risk_strategy']['portfolio']['GOOG'], stats['low_risk_strategy']['portfolio']['AMZN']))
-   
+                    traders[key]['balance'] = balance
+                # end if stock_to_trade is not None:
+            # end for key, trader in traders.items():
+        # end for company in companies:
         stockIndex += 1
+        
+        # parcours des traders pour calculer les statistiques de la simulation, net worth = balance + nonbre d'actions * prix de clôture
+        for key, trader in traders.items():
+            stats['count'][trader['strategy']] += 1
+            
+            strategy = trader['strategy']
+            
+            portfolio = trader['portfolio']
+            balance = trader['balance']
+            netWorth = balance
+            
+            for company in companies:
+                netWorth += portfolio[company] * stocks[company][stockIndex]['Close']
+            
+            stats[strategy]['balance'] += balance
+            stats[strategy]['portfolio'][company] += portfolio[company]
+            stats[strategy]['netWorth'] = netWorth
+            
+        for key, value in stats['count'].items():
+            stats['count'][key] = value / tradersNumbers * 100
+    
+        # affichage des résultats et des statistiques de la simulation
+        os.system('cls' if os.name == 'nt' else 'clear')
+        print('Generation %i, Date: %s ,Jour %i/%i, traders proportions: %.1f/%.1f/%.1f/%.1f/%.1f' % (generation, randomDate, currentDay, dayMax, stats['count']['high_liquidity_strategy'], stats['count']['low_liquidity_strategy'], stats['count']['trend_following_strategy'], stats['count']['high_risk_strategy'], stats['count']['low_risk_strategy']))
+        print('Moyenne des valeur nette, des balances & des portefeuilles:')
+        
+        high_liquidity_color = '\033[92m' if stats['high_liquidity_strategy']['balance'] >= stats['low_liquidity_strategy']['balance'] else '\033[91m'
+        low_liquidity_color = '\033[92m' if stats['low_liquidity_strategy']['balance'] >= stats['high_liquidity_strategy']['balance'] else '\033[91m'
+        trend_following_color = '\033[92m' if stats['trend_following_strategy']['balance'] >= stats['high_liquidity_strategy']['balance'] else '\033[91m'
+        high_risk_color = '\033[92m' if stats['high_risk_strategy']['balance'] >= stats['high_liquidity_strategy']['balance'] else '\033[91m'
+        low_risk_color = '\033[92m' if stats['low_risk_strategy']['balance'] >= stats['high_liquidity_strategy']['balance'] else '\033[91m'
+
+        print('Strategie de haute liquidité, net worth: %s%.1f\033[0m $, balance: %.1f $, portefeuille moyens: %.1f/%.1f/%.1f/%.1f' % (high_liquidity_color, stats['high_liquidity_strategy']['netWorth'], stats['high_liquidity_strategy']['balance'], stats['high_liquidity_strategy']['portfolio']['AAPL'], stats['high_liquidity_strategy']['portfolio']['MSFT'], stats['high_liquidity_strategy']['portfolio']['GOOG'], stats['high_liquidity_strategy']['portfolio']['AMZN']))
+        print('Strategie de basse liquidité, net worth: %s%.1f\033[0m $, balance: %.1f $, portefeuille moyens: %.1f/%.1f/%.1f/%.1f' % (low_liquidity_color, stats['low_liquidity_strategy']['netWorth'], stats['low_liquidity_strategy']['balance'], stats['low_liquidity_strategy']['portfolio']['AAPL'], stats['low_liquidity_strategy']['portfolio']['MSFT'], stats['low_liquidity_strategy']['portfolio']['GOOG'], stats['low_liquidity_strategy']['portfolio']['AMZN']))
+        print('Strategie de suivi de tendance, net worth: %s%.1f\033[0m $, balance: %.1f $, portefeuille moyens: %.1f/%.1f/%.1f/%.1f' % (trend_following_color, stats['trend_following_strategy']['netWorth'], stats['trend_following_strategy']['balance'], stats['trend_following_strategy']['portfolio']['AAPL'], stats['trend_following_strategy']['portfolio']['MSFT'], stats['trend_following_strategy']['portfolio']['GOOG'], stats['trend_following_strategy']['portfolio']['AMZN']))
+        print('Strategie à haut risque, net worth: %s%.1f\033[0m $, balance: %.1f $, portefeuille moyens: %.1f/%.1f/%.1f/%.1f' % (high_risk_color, stats['high_risk_strategy']['netWorth'], stats['high_risk_strategy']['balance'], stats['high_risk_strategy']['portfolio']['AAPL'], stats['high_risk_strategy']['portfolio']['MSFT'], stats['high_risk_strategy']['portfolio']['GOOG'], stats['high_risk_strategy']['portfolio']['AMZN']))
+        print('Strategie à bas risque, net worth: %s%.1f\033[0m $, balance: %.1f $, portefeuille moyens: %.1f/%.1f/%.1f/%.1f' % (low_risk_color, stats['low_risk_strategy']['netWorth'], stats['low_risk_strategy']['balance'], stats['low_risk_strategy']['portfolio']['AAPL'], stats['low_risk_strategy']['portfolio']['MSFT'], stats['low_risk_strategy']['portfolio']['GOOG'], stats['low_risk_strategy']['portfolio']['AMZN']))
