@@ -1,7 +1,32 @@
 import numpy as np
 
+# 'portfolio': {'AAPL': 0, 'MSFT': 0, 'GOOG': 0, 'AMZN': 0, 'FB': 0}
+# stockParameters = {'openPrice': openPrice, 'highPrice': highPrice, 'lowPrice': lowPrice, 'closePrice': closePrice, 'adjustedClosePrice': adjustedClosePrice, 'volume': volume}'}
+
+# Fonction pour calculer la moyenne mobile exponentielle
+def calculate_EMA(df, period=20, column='Close'):
+    return df[column].ewm(span=period, adjust=False).mean()
+
+
+# Fonction pour calculer le RSI
+def calculate_RSI(df, period=14, column='Close'):
+    delta = df[column].diff()
+    up = delta.where(delta > 0, 0)
+    down = -delta.where(delta < 0, 0)
+    ema_up = up.ewm(com=period-1, min_periods=period).mean()
+    ema_down = down.ewm(com=period-1, min_periods=period).mean()
+    rs = ema_up / ema_down
+    return 100 - (100 / (1 + rs))
+
+
 # Stratégie de liquidité élevée :
-def high_liquidity_strategy(portfolio, balance, price, daily_volume, support, resistance, volatility):
+def high_liquidity_strategy(portfolio, balance, stockParameters):
+    price = stockParameters['closePrice']
+    daily_volume = stockParameters['volume']
+    support = stockParameters['lowPrice']
+    resistance = stockParameters['highPrice']
+    volatility = (resistance - support) * 0.25
+    
     max_liquidity = daily_volume * 0.05
     limit_price = support + (resistance - support) * 0.25
     stock_to_trade = None
@@ -32,7 +57,10 @@ def high_liquidity_strategy(portfolio, balance, price, daily_volume, support, re
 
 
 # Stratégie de liquidité faible :
-def low_liquidity_strategy(portfolio, balance, price, daily_volume, target_price):
+def low_liquidity_strategy(portfolio, balance, stockParameters):
+    price = stockParameters['closePrice']
+    target_Price = stockParameters['openPrice']
+    
     max_quantity = 100
     stock_to_trade = None
     quantity_to_trade = 0
@@ -60,8 +88,13 @@ def low_liquidity_strategy(portfolio, balance, price, daily_volume, target_price
     
     return stock_to_trade, quantity_to_trade
 
+
 # Stratégie de réaction rapide :
-def fast_reaction_strategy(portfolio, balance, price, daily_volume, volatility):
+def fast_reaction_strategy(portfolio, balance, stockParameters):
+    price = stockParameters['closePrice']
+    daily_volume = stockParameters['volume']
+    volatility = stockParameters['highPrice'] - stockParameters['lowPrice']
+    
     max_quantity = int(balance / price)
     stock_to_trade = None
     quantity_to_trade = 0
@@ -91,8 +124,15 @@ def fast_reaction_strategy(portfolio, balance, price, daily_volume, volatility):
     
     return stock_to_trade, quantity_to_trade
 
-# Stratégie de suivi de tendance :
-def trend_following_strategy(portfolio, balance, price, daily_volume, support, resistance, volatility):
+
+# Stategie de suivie de tendance :
+def trend_following_strategy(portfolio, balance, stockParameters):
+    price = stockParameters['closePrice']
+    daily_volume = stockParameters['volume']
+    support = stockParameters['lowPrice']
+    resistance = stockParameters['highPrice']
+    volatility = resistance - support
+    
     stock_to_trade = None
     quantity_to_trade = 0
     
@@ -114,8 +154,14 @@ def trend_following_strategy(portfolio, balance, price, daily_volume, support, r
     return stock_to_trade, quantity_to_trade
 
 
-# Stratégie de risque élevé :
-def high_risk_strategy(portfolio, balance, price, daily_volume, support, resistance, volatility):
+# Stratégie de prise de risque élevée :
+def high_risk_strategy(portfolio, balance, stockParameters):
+    price = stockParameters['closePrice']
+    daily_volume = stockParameters['volume']
+    support = stockParameters['lowPrice']
+    resistance = stockParameters['highPrice']
+    volatility = resistance - support
+    
     stock_to_trade = None
     quantity_to_trade = 0
     
@@ -137,8 +183,14 @@ def high_risk_strategy(portfolio, balance, price, daily_volume, support, resista
     return stock_to_trade, quantity_to_trade
 
 
-# Stratégie de risque faible :
-def low_risk_strategy(portfolio, balance, price, daily_volume, support, resistance, volatility):
+# Stratégie de prise de risque faible :
+def low_risk_strategy(portfolio, balance, stockParameters):
+    price = stockParameters['closePrice']
+    daily_volume = stockParameters['volume']
+    support = stockParameters['lowPrice']
+    resistance = stockParameters['highPrice']
+    volatility = resistance - support
+    
     max_liquidity = daily_volume * 0.05
     limit_price = support + (resistance - support) * 0.25
     stock_to_trade = None
