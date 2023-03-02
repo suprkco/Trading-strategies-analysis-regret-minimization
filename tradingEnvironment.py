@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import yfinance as yf
 from tradingStrategies import high_liquidity_strategy, low_liquidity_strategy, fast_reaction_strategy, trend_following_strategy, high_risk_strategy, low_risk_strategy
-
+import colorama
 
 # https://pypi.org/project/yfinance/ 
 
@@ -139,11 +139,19 @@ for generation in range(generationMax):
             os.system('cls' if os.name == 'nt' else 'clear')
             print('Generation %i, Date: %s ,Jour %i/%i, traders proportions: %f/%f/%f/%f/%f/%f' % (generation, randomDate, currentDay, dayMax, 0, 0, 0, 0, 0, 0))
             print('Moyenne des balances & portefeuilles:')
-            print('Strategie de haute liquidité: %f, portefeuille moyens: %f/%f/%f/%f' % (stats['high_liquidity_strategy']['balance'], stats['high_liquidity_strategy']['portfolio']['AAPL'], stats['high_liquidity_strategy']['portfolio']['MSFT'], stats['high_liquidity_strategy']['portfolio']['GOOG'], stats['high_liquidity_strategy']['portfolio']['AMZN']))
-            print('Strategie de basse liquidité: %f, portefeuille moyens: %f/%f/%f/%f' % (stats['low_liquidity_strategy']['balance'], stats['low_liquidity_strategy']['portfolio']['AAPL'], stats['low_liquidity_strategy']['portfolio']['MSFT'], stats['low_liquidity_strategy']['portfolio']['GOOG'], stats['low_liquidity_strategy']['portfolio']['AMZN']))
-            print('Strategie de réaction rapide: %f, portefeuille moyens: %f/%f/%f/%f' % (stats['fast_reaction_strategy']['balance'], stats['fast_reaction_strategy']['portfolio']['AAPL'], stats['fast_reaction_strategy']['portfolio']['MSFT'], stats['fast_reaction_strategy']['portfolio']['GOOG'], stats['fast_reaction_strategy']['portfolio']['AMZN']))
-            print('Strategie de suivi de tendance: %f, portefeuille moyens: %f/%f/%f/%f' % (stats['trend_following_strategy']['balance'], stats['trend_following_strategy']['portfolio']['AAPL'], stats['trend_following_strategy']['portfolio']['MSFT'], stats['trend_following_strategy']['portfolio']['GOOG'], stats['trend_following_strategy']['portfolio']['AMZN']))
-            print('Strategie à haut risque: %f, portefeuille moyens: %f/%f/%f/%f' % (stats['high_risk_strategy']['balance'], stats['high_risk_strategy']['portfolio']['AAPL'], stats['high_risk_strategy']['portfolio']['MSFT'], stats['high_risk_strategy']['portfolio']['GOOG'], stats['high_risk_strategy']['portfolio']['AMZN']))
-            print('Strategie à bas risque: %f, portefeuille moyens: %f/%f/%f/%f' % (stats['low_risk_strategy']['balance'], stats['low_risk_strategy']['portfolio']['AAPL'], stats['low_risk_strategy']['portfolio']['MSFT'], stats['low_risk_strategy']['portfolio']['GOOG'], stats['low_risk_strategy']['portfolio']['AMZN']))
             
+            high_liquidity_color = '\033[92m' if stats['high_liquidity_strategy']['balance'] > stats['low_liquidity_strategy']['balance'] else '\033[91m'
+            low_liquidity_color = '\033[92m' if stats['low_liquidity_strategy']['balance'] > stats['high_liquidity_strategy']['balance'] else '\033[91m'
+            fast_reaction_color = '\033[92m' if stats['fast_reaction_strategy']['balance'] > stats['high_liquidity_strategy']['balance'] else '\033[91m'
+            trend_following_color = '\033[92m' if stats['trend_following_strategy']['balance'] > stats['high_liquidity_strategy']['balance'] else '\033[91m'
+            high_risk_color = '\033[92m' if stats['high_risk_strategy']['balance'] > stats['high_liquidity_strategy']['balance'] else '\033[91m'
+            low_risk_color = '\033[92m' if stats['low_risk_strategy']['balance'] > stats['high_liquidity_strategy']['balance'] else '\033[91m'
+            
+            print('Strategy de haute liquidité: %s%f\033[0m, portefeuille moyens: %f/%f/%f/%f' % (high_liquidity_color, stats['high_liquidity_strategy']['balance'], stats['high_liquidity_strategy']['portfolio']['AAPL'], stats['high_liquidity_strategy']['portfolio']['MSFT'], stats['high_liquidity_strategy']['portfolio']['GOOG'], stats['high_liquidity_strategy']['portfolio']['AMZN']))
+            print('Strategy de basse liquidité: %s%f\033[0m, portefeuille moyens: %f/%f/%f/%f' % (low_liquidity_color, stats['low_liquidity_strategy']['balance'], stats['low_liquidity_strategy']['portfolio']['AAPL'], stats['low_liquidity_strategy']['portfolio']['MSFT'], stats['low_liquidity_strategy']['portfolio']['GOOG'], stats['low_liquidity_strategy']['portfolio']['AMZN']))
+            print('Strategy de réaction rapide: %s%f\033[0m, portefeuille moyens: %f/%f/%f/%f' % (fast_reaction_color, stats['fast_reaction_strategy']['balance'], stats['fast_reaction_strategy']['portfolio']['AAPL'], stats['fast_reaction_strategy']['portfolio']['MSFT'], stats['fast_reaction_strategy']['portfolio']['GOOG'], stats['fast_reaction_strategy']['portfolio']['AMZN']))
+            print('Strategy de suivi de tendance: %s%f\033[0m, portefeuille moyens: %f/%f/%f/%f' % (trend_following_color, stats['trend_following_strategy']['balance'], stats['trend_following_strategy']['portfolio']['AAPL'], stats['trend_following_strategy']['portfolio']['MSFT'], stats['trend_following_strategy']['portfolio']['GOOG'], stats['trend_following_strategy']['portfolio']['AMZN']))
+            print('Strategy à haut risque: %s%f\033[0m, portefeuille moyens: %f/%f/%f/%f' % (high_risk_color, stats['high_risk_strategy']['balance'], stats['high_risk_strategy']['portfolio']['AAPL'], stats['high_risk_strategy']['portfolio']['MSFT'], stats['high_risk_strategy']['portfolio']['GOOG'], stats['high_risk_strategy']['portfolio']['AMZN']))
+            print('Strategy à bas risque: %s%f\033[0m, portefeuille moyens: %f/%f/%f/%f' % (low_risk_color, stats['low_risk_strategy']['balance'], stats['low_risk_strategy']['portfolio']['AAPL'], stats['low_risk_strategy']['portfolio']['MSFT'], stats['low_risk_strategy']['portfolio']['GOOG'], stats['low_risk_strategy']['portfolio']['AMZN']))
+   
         stockIndex += 1
