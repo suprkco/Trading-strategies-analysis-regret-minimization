@@ -7,7 +7,10 @@ class Joueur:
         self.nb_strategies = nb_strategies
         self.strategies = strategies
         self.rendements = []
-        self.strategie = random.choice(self.strategies)
+        if strategies:
+            self.strategie = random.choice(self.strategies)
+        else:
+            self.strategie = None
 
     def get_nom(self):
         return self.nom
@@ -19,8 +22,9 @@ class Joueur:
         return self.rendements
 
     def changer_strategie(self):
-        self.strategie = random.choice(self.strategies)
-        
+        if self.strategies:
+            self.strategie = random.choice(self.strategies)
+
     def generer_ordres(self, marché):
         ordres = []
         if self.strategie == "strategie1":

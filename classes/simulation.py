@@ -15,10 +15,10 @@ class Simulation:
     def run(self):
         for i in range(self.nb_generations):
             for j in range(self.nb_tours):
-                tournoi = Tournoi(self.marche, self.population.get_stratégies(), self.nb_tours, self.nb_joueurs)
+                tournoi = Tournoi(self.marche, self.population.get_strategies(), self.nb_tours, self.nb_joueurs)
                 tournoi.jouer()
             self.population.selectionner()
-            self.resultats.append(self.population.get_best_strategy())
+            self.resultats.append(self.population.get_meilleure_strategie())
 
-sim = Simulation(10, 100, 100, 10)
+sim = Simulation(10, 7, 100, 10)
 sim.run()
