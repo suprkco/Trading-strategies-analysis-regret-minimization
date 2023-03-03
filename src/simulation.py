@@ -20,5 +20,6 @@ class Simulation:
             self.population.selectionner()
             self.resultats.append(self.population.get_meilleure_strategie())
 
+# 10 generations, 7 tours, 100 joueurs, 10 strategies, un anneaux pour les gouverner tous
 sim = Simulation(10, 7, 100, 10)
 sim.run()

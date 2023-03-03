@@ -7,5 +7,5 @@
 # ignore docx files
 *.docx
 
-# ignore pycache files
-__pycache__
+# ignore txt
+*.txt
