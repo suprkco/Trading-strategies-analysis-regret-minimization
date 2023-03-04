@@ -7,5 +7,6 @@
 # ignore docx files
 *.docx
 
-# ignore txt
+# ignore notes.txt
+notes.txt
 *.txt

@@ -1,5 +1,340 @@
-Il y a des erreur dans mon code, l'erreur est ci dessous:
-"ordres1 = s1.generer_ordres(self.marché) AttributeError: 'Joueur' object has no attribute 'generer_ordres'"
-Réecris la fonction qui ne fonctione pas
+Ce projet vise à analyser l'impact des stratégies de trading algorithmique sur la liquidité des marchés financiers en utilisant la théorie des jeux appliquée à la finance.
+Fait le fichier markdown de ce projet
 Mon code est celui ci dessous:
 ''''''''''''''''''''''''
+import random
+from marché import Marché
+from population import Population
+from tournoi import Tournoi
+
+class Simulation:
+    def __init__(self, nb_generations: int, nb_tours: int, nb_joueurs: int, nb_strategies: int):
+        self.nb_generations = nb_generations
+        self.nb_tours = nb_tours
+        self.nb_joueurs = nb_joueurs
+        self.nb_strategies = nb_strategies
+        self.marche = Marché(self.nb_tours)
+        self.population = Population(self.nb_joueurs, self.nb_strategies, random.uniform(0, 1))
+        self.resultats = []
+
+    def run(self):
+        for i in range(self.nb_generations):
+            for j in range(self.nb_tours):
+                tournoi = Tournoi(self.marche, self.population.get_strategies(), self.nb_tours, self.nb_joueurs)
+                tournoi.jouer()
+                self.afficher_details()
+            self.population.selectionner()
+            self.resultats.append(self.population.get_meilleure_strategie())
+
+    def afficher_details(self):
+        for strat in self.population.get_strategies():
+            print("Stratégie", strat.get_nom(), ":", sum([joueur.get_rendements()[-1] for joueur in strat.get_joueurs()])/len(strat.get_joueurs()))
+        print("Meilleure stratégie :", self.population.get_meilleure_strategie().get_nom())
+
+if __name__ == "__main__":
+    sim = Simulation(10, 7, 100, 10)
+    sim.run()
+''''''''''''''''''''''''
+import datetime
+import random
+import time
+import yfinance as yf
+
+
+def str_time_prop(start: datetime, end: datetime, time_format: str, prop: float) -> str:
+    stime = time.mktime(time.strptime(start, time_format))
+    etime = time.mktime(time.strptime(end, time_format))
+    ptime = stime + prop * (etime - stime)
+    return time.strftime(time_format, time.localtime(ptime))
+
+
+def random_date(start: datetime, end: datetime, prop: float) -> str:
+    return str_time_prop(start, end, '%m/%d/%Y %I:%M %p', prop)
+
+
+COMPANIES = ['AAPL', 'MFSF', 'AMZN', 'GOOG']
+
+
+class Marché:
+    def __init__(self, nb_tours: int):
+        self.entreprise = random.choice(COMPANIES)
+
+        self.endSampleDate = (datetime.datetime.now() - datetime.timedelta(days=nb_tours)).strftime('%m/%d/%Y %I:%M %p')
+        self.startSampleDate = (datetime.datetime.now() - datetime.timedelta(days=30)).strftime('%m/%d/%Y %I:%M %p')
+        self.randomizedDate = datetime.datetime.strptime(random_date(self.startSampleDate, self.endSampleDate, random.random()), '%m/%d/%Y %I:%M %p')
+        self.endSimulationDate = self.randomizedDate + datetime.timedelta( days=nb_tours)
+        self.full_prix = yf.download(self.entreprise, start=self.randomizedDate, end=self.endSimulationDate, interval='1m').to_dict('records')
+
+        self.prix_actuel = 0
+        self.avancement = 0
+        self.historique_prix = []
+
+    def choix_entreprise(self):
+        self.entreprise = random.choice(COMPANIES)
+
+    def get_prix_actuel(self) -> float:
+        return self.prix_actuel
+
+    def set_prix_actuel(self):
+        self.historique_prix.append(self.prix_actuel)
+        self.prix_actuel = self.full_prix[self.avancement]['Close']
+        self.avancement += 1
+
+    def get_historique_prix(self) -> list:
+        return self.historique_prix
+
+    def simuler_ordres(self, ordres: list) -> list:
+        if not ordres:
+            return []
+        for ordre in ordres:
+            prix_actuel = self.get_prix_actuel()
+            if ordre['type'] == 'achat' and ordre['prix'] >= prix_actuel:
+                ordre['statut'] = 'refusé'
+            elif ordre['type'] == 'vente' and ordre['prix'] <= prix_actuel:
+                ordre['statut'] = 'refusé'
+            else:
+                ordre['statut'] = 'refusé'
+                
+        prix = [ordre['prix'] for ordre in ordres if ordre['statut'] == 'exécuté']
+        qtes = [ordre['quantité'] for ordre in ordres if ordre['statut'] == 'exécuté']
+        return prix, qtes
+''''''''''''''''''''''''
+from stratégie import Stratégie
+from joueur import Joueur
+import random
+
+class Population:
+    def __init__(self, taille: int, nb_strategies: int, poids: float):
+        self.taille = taille
+        self.nb_strategies = nb_strategies
+        self.poids = poids
+        self.strategies = [Stratégie("Strategie {}".format(i), self.poids) for i in range(self.nb_strategies)]
+        self.joueurs = [Joueur("Joueur {}".format(i), self.nb_strategies, self.strategies) for i in range(self.taille)]
+        self.meilleures_strategies = []
+        self.individus = []
+        self.init_strategies()
+
+    def get_taille(self) -> int:
+        return self.taille
+
+    def get_strategies(self) -> list:
+        return self.strategies
+
+    def ajouter_strategie(self, strategie: list):
+        self.strategies.append(strategie)
+
+    def init_strategies(self):
+        for i in range(self.taille):
+            nomJoueur = "Joueur " + str(i)
+            joueur = Joueur(nomJoueur, self.nb_strategies, self.strategies)
+            self.ajouter_strategie(joueur)
+
+    def jouer_tous(self, marché):
+        for strat in self.strategies:
+            for joueur in strat.get_joueurs():
+                ordres = joueur.generer_ordres(marché)
+                marché.execute_ordres(ordres, joueur.get_nom())
+                joueur.ajouter_rendement(marché.get_prix_actuel())
+
+    def trier_strategies(self):
+        self.strategies = sorted(self.strategies, key=lambda x: sum([joueur.get_rendements()[-1] for joueur in x.get_joueurs()])/len(x.get_joueurs()), reverse=True)
+
+    def selectionner(self):
+        self.trier_strategies()
+        self.meilleures_strategies = self.strategies[:int(self.taille/2)]
+        self.strategies = []
+        for strat in self.meilleures_strategies:
+            self.strategies.append(strat)
+            clone = strat.clone()
+            clone.muter()
+            self.strategies.append(clone)
+            
+    def get_meilleure_strategie(self):
+        self.trier_strategies()
+        return self.strategies[0]
+    
+    def get_joueurs(self, strat: Stratégie) -> list:
+        return [joueur for joueur in self.joueurs if joueur.strategies == strat]
+
+    def selectionner_meilleures_strategies(self, pourcentage: float):
+        nb_strategies = int(self.taille * pourcentage)
+        self.meilleures_strategies = self.strategies[:nb_strategies]
+        self.individus = [strat for strat in self.meilleures_strategies]
+
+    def reproduire(self):
+        nouvelle_generation = Population(self.taille, self.nb_strategies)
+        for i in range(self.taille):
+            parents = random.sample(self.meilleures_strategies, 2)
+            enfant = self.croisement(parents[0], parents[1])
+            nouvelle_generation.ajouter_strategie(enfant)
+        return nouvelle_generation
+
+    def croisement(self, parent1, parent2):
+        point_de_croisement = random.randint(1, self.nb_strategies-1)
+        enfant_strategie = parent1.get_strategie()[:point_de_croisement] + parent2.get_strategie()[point_de_croisement:]
+        enfant = Joueur(parent1.get_nom(), self.nb_strategies)
+        enfant.set_strategie(enfant_strategie)
+        return enfant
+''''''''''''''''''''''''
+class Stratégie:
+    def __init__(self, nom: str, poids: float):
+        self.nom = nom
+        self.poids = poids
+        self.rendements = []
+        self.regrets = []
+    
+    def get_nom(self) -> str:
+        return self.nom
+    
+    
+    def get_rendements(self) -> list:
+        return self.rendements
+    
+    def get_regrets(self) -> list:
+        return self.regrets
+    
+    def jouer(self, marché) -> list:
+        ordres = []
+        total_qte = sum([joueur.get_qte() for joueur in self.joueurs])
+        prix = marché.get_prix()
+        if prix is None:
+            return None
+        qte = int(self.poids * total_qte) - sum([joueur.get_qte() for joueur in self.joueurs if joueur.get_acheteur()])
+        if qte > 0:
+            ordres.append((prix, qte, True))
+        elif qte < 0:
+            ordres.append((prix, -qte, False))
+        return ordres
+    
+    def calculer_rendement(self, marché) -> float:
+        rendement = marché.get_prix_actuel() - self.prix_achat
+        self.rendements.append(rendement)
+        return rendement
+
+    def calculer_regret(self, marché, autres_stratégies: list) -> float:
+        rendements = [strat.calculer_rendement(marché) for strat in autres_stratégies]
+        meilleur_rendement = max(rendements)
+        regret = meilleur_rendement - self.calculer_rendement(marché)
+        self.regrets.append(regret)
+        return regret
+''''''''''''''''''''''''
+import random
+
+class Joueur:
+    def __init__(self, nom: str, nb_strategies: int, strategies: int):
+        self.nom = nom
+        self.nb_strategies = nb_strategies
+        self.strategies = strategies
+        self.rendements = []
+
+    def get_nom(self) -> str:
+        return self.nom
+
+    def ajouter_rendement(self, rendement: float):
+        self.rendements.append(rendement)
+
+    def get_rendements(self) -> list:
+        return self.rendements
+
+    def changer_strategie(self):
+        if self.strategies:
+            self.strategie = random.choice(self.strategies)
+
+    def generer_ordres_joueur(self, marché):
+        ordres = []
+        for i in range(self.nb_strategies):
+            if i != self.strategies:
+                qte = random.randint(1, 10)
+                prix = random.uniform(marché.get_prix_min(), marché.get_prix_max())
+                ordres.append((self.nom, i, qte, prix))
+        return ordres
+''''''''''''''''''''''''
+import itertools
+import random
+
+class Tournoi:
+    def __init__(self, marché, population, nb_matchs, taille_tournoi):
+        self.marché = marché
+        self.population = population
+        self.nb_matchs = nb_matchs
+        self.taille_tournoi = taille_tournoi
+        self.individus = [strat for strat in self.population]
+
+    def jouer(self):
+        scores = {strat: 0 for strat in self.population}
+        for i in range(self.nb_matchs):
+            random.shuffle(self.population)
+            groupes = [self.population[j:j + self.taille_tournoi]
+                       for j in range(0, len(self.population), self.taille_tournoi)]
+            for groupe in groupes:
+                matchs = itertools.combinations(groupe, 2)
+                for s1, s2 in matchs:
+                    ordres1 = s1.jouer(self.marché)
+                    if ordres1 is None:
+                        ordres1 = []
+                    ordres2 = s2.jouer(self.marché)
+                    if ordres2 is None:
+                        ordres2 = []
+                    ordres = ordres1 + ordres2
+                    prix_qtes = self.marché.simuler_ordres(ordres)
+                    if not prix_qtes:
+                        continue
+                    prix, qtes = prix_qtes
+                    resultat1 = s1.evaluer_match(prix, qtes)
+                    resultat2 = s2.evaluer_match(prix, qtes)
+                    scores[s1] += resultat1
+                    scores[s2] += resultat2
+        self.scores = scores
+
+
+    def get_scores(self) -> dict:
+        return self.scores
+
+    def get_classement(self) -> list:
+        classement = sorted(self.population, key=lambda s: self.scores[s], reverse=True)
+        return classement
+
+    def reset(self):
+        self.scores = {strat: 0 for strat in self.population}
+        
+    def __iter__(self) -> iter:
+        return iter(self.individus)
+''''''''''''''''''''''''
+class Situation:
+    def __init__(self, marché):
+        self.marché = marché
+        self.joueurs = []
+        
+    def ajouter_joueur(self, joueur):
+        self.joueurs.append(joueur)
+        
+    def jouer_tour(self):
+        for joueur in self.joueurs:
+            action = joueur.jouer(self.marché)
+            gain = self.marché.effectuer_transaction(action)
+            joueur.mise_a_jour(gain)
+''''''''''''''''''''''''
+import random
+
+class Regret:
+    def __init__(self, actions: list):
+        self.regrets = {a: 0 for a in actions}
+        self.total_regret = 0
+        
+    def mise_a_jour(self, actions_payoffs: dict):
+        optimal_payoff = max(actions_payoffs.values())
+        for action in actions_payoffs:
+            regret = optimal_payoff - actions_payoffs[action]
+            self.regrets[action] += regret
+            self.total_regret += abs(regret)
+            
+    def choisir_action(self):
+        if self.total_regret == 0:
+            return random.choice(list(self.regrets.keys()))
+        weighted_regrets = {a: self.regrets[a] / self.total_regret for a in self.regrets}
+        return random.choices(list(weighted_regrets.keys()), list(weighted_regrets.values()))[0]
+''''''''''''''''''''''''
+
+
+il y a trois branches : main, develop et dev2. comment rendre le projet propre ? je veux merge les branches develop et dev2
+copilot:
