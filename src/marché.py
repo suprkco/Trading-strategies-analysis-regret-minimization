@@ -5,32 +5,46 @@ import yfinance as yf
 
 class Marché:
     def __init__(self, nb_tours: int):
-        self.entreprises = ['AAPL', 'MFSF', 'AMZN', 'GOOG']
+        self.entreprises = ['AAPL', 'AMZN', 'GOOG']
         self.entreprise = random.choice(self.entreprises)
 
         self.endSampleDate = (datetime.datetime.now() - datetime.timedelta(days=nb_tours)).strftime('%m/%d/%Y %I:%M %p')
         self.startSampleDate = (datetime.datetime.now() - datetime.timedelta(days=30)).strftime('%m/%d/%Y %I:%M %p')
         self.randomizedDate = datetime.datetime.strptime(random_date(self.startSampleDate, self.endSampleDate, random.random()), '%m/%d/%Y %I:%M %p')
         self.endSimulationDate = self.randomizedDate + datetime.timedelta( days=nb_tours)
-        self.full_prix = yf.download(self.entreprise, start=self.randomizedDate, end=self.endSimulationDate, interval='1m').to_dict('records')
-
-        self.prix_actuel = 0
+        self.full_prix = yf.download(self.entreprise, start=self.randomizedDate, end=self.endSimulationDate, interval='5m').to_dict('records')
+        
         self.avancement = 0
+        self.prix_actuel = self.full_prix[self.avancement]
         self.historique_prix = []
 
     def choix_entreprise(self):
         self.entreprise = random.choice(self.entreprises)
+        
+    def reset_avancement(self):
+        self.avancement = 0
+        self.historique_prix = []
 
     def get_prix_actuel(self):
         return self.prix_actuel
 
     def set_prix_actuel(self):
         self.historique_prix.append(self.prix_actuel)
-        self.prix_actuel = self.full_prix[self.avancement]
+        if self.avancement < len(self.full_prix) - 1:
+            self.prix_actuel = self.full_prix[self.avancement]
         self.avancement += 1
 
     def get_historique_prix(self):
         return self.historique_prix
+    
+    def get_length_prix(self):
+        return len(self.full_prix)
+    
+    def get_avancement(self):
+        return self.avancement
+    
+    def get_entreprise(self):
+        return str(self.entreprise)
 
     def simuler_ordres(self, ordres):
         if not ordres:

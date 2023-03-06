@@ -8,16 +8,16 @@ class Simulation:
         self.nb_tours = nb_tours
         self.nb_joueurs = nb_joueurs
         self.marche = Marché(self.nb_tours)
-        self.population = Population(self.nb_joueurs)
+        self.population = Population(self.marche, self.nb_joueurs)
 
     def run(self):
         for i in range(self.nb_generations):
-            for j in range(self.nb_tours):
-                tournoi = Tournoi(self.marche, self.population, self.nb_tours)
-                tournoi.jouer()
-                self.afficher_details()
+            tournoi = Tournoi(self.marche, self.population, self.nb_tours)
+            tournoi.jouer()
             self.population.selectionner()
+            print("\n\nGénération", i+1, "terminée.")
+            input()
 
 if __name__ == "__main__":
-    sim = Simulation(10, 7, 100)
+    sim = Simulation(10, 7, 10)
     sim.run()
