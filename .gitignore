@@ -10,3 +10,9 @@
 # ignore notes.txt
 notes.txt
 *.txt
+
+# ignore consignes
+consignes
+
+# ignore ressources
+ressources
