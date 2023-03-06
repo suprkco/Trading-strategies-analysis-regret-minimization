@@ -7,5 +7,12 @@
 # ignore docx files
 *.docx
 
-# ignore pycache files
-__pycache__
+# ignore notes.txt
+notes.txt
+*.txt
+
+# ignore consignes
+consignes
+
+# ignore ressources
+ressources
