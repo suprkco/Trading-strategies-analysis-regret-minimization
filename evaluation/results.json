@@ -1,0 +1,1563 @@
+{
+  "generated_at": "2026-09-30T08:20:37.266543+00:00",
+  "python": "3.10.4",
+  "scope": "Synthetic development scenarios; seeds 0-19; 500 rounds; no tuning or financial backtest.",
+  "records": [
+    {
+      "scenario": "up",
+      "runs": [
+        {
+          "seed": 0,
+          "input_sha256": "01d2ba29fbc8b8d16d042201e244b5f158de25b391e555016af0383f8e53d359",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 1.8911285590373694,
+          "uniform_reward": 1.0658234040245527,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": 2.137091026564356,
+            "momentum": 2.0090612967394144,
+            "contrarian": 0.1171412927944409
+          },
+          "best_fixed_expert": "long",
+          "regret": 0.24596246752698647,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 1,
+          "input_sha256": "f0b114f2c4cd49c6ff6f8e1b9c39f364f337920274f0ef0313a2a3ddc81eeaef",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 1.7358160165255159,
+          "uniform_reward": 0.9982678827998746,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": 1.9948794080408732,
+            "momentum": 1.8324723119768074,
+            "contrarian": 0.16571981118181897
+          },
+          "best_fixed_expert": "long",
+          "regret": 0.2590633915153573,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 2,
+          "input_sha256": "30b97ae62af1a9c5a8d4c163e8ec8210f47e572efc7ab02d3601188a374f2739",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 1.8013720362978511,
+          "uniform_reward": 1.0275114576618685,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": 2.0615832580426297,
+            "momentum": 1.8958681675129287,
+            "contrarian": 0.15259440509191477
+          },
+          "best_fixed_expert": "long",
+          "regret": 0.2602112217447785,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 3,
+          "input_sha256": "29c8259d96a43b10f9419953c9c5a60a2c72e44a4a7164a60840b9108032304d",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 1.8152895924222066,
+          "uniform_reward": 1.02536275360186,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": 2.0501051534746386,
+            "momentum": 1.9504541249551601,
+            "contrarian": 0.10089173597764091
+          },
+          "best_fixed_expert": "long",
+          "regret": 0.23481556105243206,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 4,
+          "input_sha256": "f6c59bf03d264dbd128d93faac7bead2c5755663e77bd153bfa3e72128510b9e",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 1.9253522147351054,
+          "uniform_reward": 1.0881722226816,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": 2.175704926260574,
+            "momentum": 2.0382330767170553,
+            "contrarian": 0.13875088774877056
+          },
+          "best_fixed_expert": "long",
+          "regret": 0.2503527115254687,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 5,
+          "input_sha256": "5a3c84e8c9f0767db2ea955c60813b7a73f1406abd033f034e041d726cf5c59a",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 1.7196988714739976,
+          "uniform_reward": 0.9845333952302836,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": 1.972295807409464,
+            "momentum": 1.82817928567404,
+            "contrarian": 0.13765848783763085
+          },
+          "best_fixed_expert": "long",
+          "regret": 0.2525969359354665,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 6,
+          "input_sha256": "9462ce8995b0174e54900558fc7a4f91a3243637712426a87a6b8a17a941a249",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 1.7971256930754298,
+          "uniform_reward": 1.0182913969314502,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": 2.041516194700517,
+            "momentum": 1.9180356869483794,
+            "contrarian": 0.1136137060769045
+          },
+          "best_fixed_expert": "long",
+          "regret": 0.24439050162508735,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 7,
+          "input_sha256": "5482843f1758de27b7a963df3d2be3daef74a24c5fc30d21aa1c72032a0762c5",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 1.5422942953546186,
+          "uniform_reward": 0.899595177583149,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": 1.7994286828146295,
+            "momentum": 1.6427794944264116,
+            "contrarian": 0.15617253309155515
+          },
+          "best_fixed_expert": "long",
+          "regret": 0.25713438746001094,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 8,
+          "input_sha256": "51eae6bf9e83df429fb4fb1c931f2a083c718cb09a0b11c12af09460b74e3c2e",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 1.9306633148854846,
+          "uniform_reward": 1.0906215053401105,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": 2.1805100692740313,
+            "momentum": 2.043467435271179,
+            "contrarian": 0.1385085168152309
+          },
+          "best_fixed_expert": "long",
+          "regret": 0.24984675438854675,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 9,
+          "input_sha256": "d75b8c536e0b6e3e481ef2d2cfc2c43c8ff34340c6f4880f5a4008d93134d00d",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 1.566859255938403,
+          "uniform_reward": 0.9189507319659378,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": 1.8395315375100263,
+            "momentum": 1.6373143098966374,
+            "contrarian": 0.19895708045708815
+          },
+          "best_fixed_expert": "long",
+          "regret": 0.2726722815716234,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 10,
+          "input_sha256": "05890df3c7e55d486f503dfe2bd92886b5645e62d19072f1af532498b0255922",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 1.7528252628718366,
+          "uniform_reward": 0.9968120195005004,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": 1.9963380649478997,
+            "momentum": 1.8750594381431271,
+            "contrarian": 0.11585057491097382
+          },
+          "best_fixed_expert": "long",
+          "regret": 0.24351280207606307,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 11,
+          "input_sha256": "25ad0fbb1157094889d11a407d2cff38f0edb8875d85c8d1f24c18e451be50da",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 1.8588410582367296,
+          "uniform_reward": 1.0571428753613723,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": 2.1158095462578426,
+            "momentum": 1.9593861212265156,
+            "contrarian": 0.153375833961131
+          },
+          "best_fixed_expert": "long",
+          "regret": 0.25696848802111294,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 12,
+          "input_sha256": "09aa994dbdc9cf1cb4f115b1dd641cd57bbfafc5fad723ebf96f0ef0a12dcdb2",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 1.7819629219251272,
+          "uniform_reward": 1.0022980599029085,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": 2.006341826592702,
+            "momentum": 1.932002741682413,
+            "contrarian": 0.07084767133651829
+          },
+          "best_fixed_expert": "long",
+          "regret": 0.22437890466757504,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 13,
+          "input_sha256": "fe342a8af542bbaeba598ee3b43111e335f66d14bb52a685910d1fe547b6f2dd",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 1.65790784011651,
+          "uniform_reward": 0.9500928532320864,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": 1.8997757913813274,
+            "momentum": 1.782916772983901,
+            "contrarian": 0.1176788485631174
+          },
+          "best_fixed_expert": "long",
+          "regret": 0.24186795126481742,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 14,
+          "input_sha256": "2392083f11c54af372488349ba654bce3951e78e56ac400abda886062264ed06",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 1.755161126305229,
+          "uniform_reward": 1.005035659176589,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": 2.008139603730194,
+            "momentum": 1.8620954476619835,
+            "contrarian": 0.14990758531417755
+          },
+          "best_fixed_expert": "long",
+          "regret": 0.25297847742496526,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 15,
+          "input_sha256": "47e23a3fb445d338bb9beb7a2d16f173894e5bad6b2a445c8d5a8b92c7fa88ac",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 2.0515489512614375,
+          "uniform_reward": 1.1359130888321163,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": 2.2784785990797536,
+            "momentum": 2.197527410661966,
+            "contrarian": 0.06764634558674511
+          },
+          "best_fixed_expert": "long",
+          "regret": 0.22692964781831604,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 16,
+          "input_sha256": "7c7a31cb18200ee4081c5bf8fa7aea3b9f79ca8aca60e51e3392f28ea800070a",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 1.5152850613620739,
+          "uniform_reward": 0.8862564615248696,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": 1.7731281507988799,
+            "momentum": 1.61433123058276,
+            "contrarian": 0.15756646471783942
+          },
+          "best_fixed_expert": "long",
+          "regret": 0.257843089436806,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 17,
+          "input_sha256": "75b0b772f277a23ffab4f010ea6490442d4fd3a9707a88e55837f8f9ebc0ff54",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 1.6245383377552414,
+          "uniform_reward": 0.9341829109768954,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": 1.8705856610509155,
+            "momentum": 1.7424029100412364,
+            "contrarian": 0.12374307281543034
+          },
+          "best_fixed_expert": "long",
+          "regret": 0.24604732329567414,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 18,
+          "input_sha256": "3578419472ae57e69b2bc962baa5868a855dadba3798a96a52a1b26ccb18e135",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 1.8491371534008736,
+          "uniform_reward": 1.0404895699204926,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": 2.0797917884743176,
+            "momentum": 1.9898460867056786,
+            "contrarian": 0.09232040450197547
+          },
+          "best_fixed_expert": "long",
+          "regret": 0.23065463507344397,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 19,
+          "input_sha256": "8a39c1f2e8dc9ff11c0702f9d7d588cdd3fdd7fa7313d2b7c7a41f2a7b472242",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 1.7108433125257554,
+          "uniform_reward": 0.971091510605938,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": 1.9459542794798788,
+            "momentum": 1.8454041911859318,
+            "contrarian": 0.09300757175794158
+          },
+          "best_fixed_expert": "long",
+          "regret": 0.23511096695412337,
+          "regret_upper_bound": 0.7446594822118068
+        }
+      ],
+      "mean_reward": 1.7641825437753398,
+      "mean_uniform_reward": 1.0048222468427228,
+      "mean_regret": 0.24716692501893275,
+      "std_regret": 0.01236173617424637
+    },
+    {
+      "scenario": "down",
+      "runs": [
+        {
+          "seed": 0,
+          "input_sha256": "287997cee7ffb6e790e9d8f76f596cbee4d574096623c5ed7b22e0bbe8d6d923",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": -0.25978319304063796,
+          "uniform_reward": -0.9321765959754461,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": -1.8629089734356417,
+            "momentum": -0.16479439032652618,
+            "contrarian": -1.7010030201396165
+          },
+          "best_fixed_expert": "cash",
+          "regret": 0.25978319304063796,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 1,
+          "input_sha256": "98feaee29d952e89cafd2b53522374ac1b2347a0d7f1fae3643f4c42fbbf79fa",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": -0.24892109409065746,
+          "uniform_reward": -0.9997321172001256,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": -2.0051205919591273,
+            "momentum": -0.13545149258672878,
+            "contrarian": -1.8583563842546453
+          },
+          "best_fixed_expert": "cash",
+          "regret": 0.24892109409065746,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 2,
+          "input_sha256": "4cb500ad8aba74b28daf3f3a90f2139707ba8013f6d503d35068bc13b77e46e7",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": -0.2505965948666701,
+          "uniform_reward": -0.9704885423381316,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": -1.9384167419573708,
+            "momentum": -0.1392868111046576,
+            "contrarian": -1.804250616290499
+          },
+          "best_fixed_expert": "cash",
+          "regret": 0.2505965948666701,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 3,
+          "input_sha256": "8a15b4515a999e1a1bb566599f9c42478591184330961d17143ed9f972b19111",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": -0.23682606010801296,
+          "uniform_reward": -0.9726372463981401,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": -1.949894846525361,
+            "momentum": -0.10422175976721015,
+            "contrarian": -1.8364323792999886
+          },
+          "best_fixed_expert": "cash",
+          "regret": 0.23682606010801296,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 4,
+          "input_sha256": "1ae5c2d3b014b19dd6abac9275d5a31cc1d962df695883ce599e2ed6b42c3310",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": -0.26923260633480306,
+          "uniform_reward": -0.9098277773183991,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": -1.824295073739424,
+            "momentum": -0.19257882588253508,
+            "contrarian": -1.622437209651638
+          },
+          "best_fixed_expert": "cash",
+          "regret": 0.26923260633480306,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 5,
+          "input_sha256": "4ac50837e4d2f21a4c7ef9a34c38be6db44bc485134e88d4f75af10379f5bc69",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": -0.25308689354360964,
+          "uniform_reward": -1.013466604769716,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": -2.027704192590535,
+            "momentum": -0.14539410683563467,
+            "contrarian": -1.8807681196526942
+          },
+          "best_fixed_expert": "cash",
+          "regret": 0.25308689354360964,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 6,
+          "input_sha256": "a182200fdc168eeba36f308d16d26d7f978b736af17e8a041ccad7933a18a4d3",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": -0.26432334288681325,
+          "uniform_reward": -0.9797086030685498,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": -1.958483805299483,
+            "momentum": -0.1777551876103261,
+            "contrarian": -1.7825954193643898
+          },
+          "best_fixed_expert": "cash",
+          "regret": 0.26432334288681325,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 7,
+          "input_sha256": "b22e9e71c1809a931f8a5690497047680a7fb0c618c2117fdc7f2ee96354f0e2",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": -0.2522360070078892,
+          "uniform_reward": -1.0984048224168501,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": -2.2005713171853687,
+            "momentum": -0.1440329344180324,
+            "contrarian": -2.0490150380640006
+          },
+          "best_fixed_expert": "cash",
+          "regret": 0.2522360070078892,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 8,
+          "input_sha256": "0e40efc77d7fa938af03bc18492ac537f1d5f829616ef2a0025f0d097342b64d",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": -0.257609074886342,
+          "uniform_reward": -0.9073784946598901,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": -1.8194899307259698,
+            "momentum": -0.15941262838877768,
+            "contrarian": -1.6506114195248134
+          },
+          "best_fixed_expert": "cash",
+          "regret": 0.257609074886342,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 9,
+          "input_sha256": "3c5704019355822a47a7a04faf415298716740fea8452561afc798a53d3959a4",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": -0.23927076355652588,
+          "uniform_reward": -1.0790492680340622,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": -2.160468462489974,
+            "momentum": -0.11001023254278178,
+            "contrarian": -2.045718377103492
+          },
+          "best_fixed_expert": "cash",
+          "regret": 0.23927076355652588,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 10,
+          "input_sha256": "d583a3e74f0db2b1cc6f20cad8a0ddec40afcb59ad2975188ed41c023e6d954b",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": -0.24998361195997856,
+          "uniform_reward": -1.0011879804995003,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": -2.003661935052101,
+            "momentum": -0.13802409030313723,
+            "contrarian": -1.8630658966427622
+          },
+          "best_fixed_expert": "cash",
+          "regret": 0.24998361195997856,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 11,
+          "input_sha256": "2310a55e7925b14aec396f5f587c376fcddbd80cfa30c1f18e7793f2bb98e3a1",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": -0.24352065863647485,
+          "uniform_reward": -0.9408571246386274,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": -1.8841904537421563,
+            "momentum": -0.12117655572096447,
+            "contrarian": -1.7580614890913884
+          },
+          "best_fixed_expert": "cash",
+          "regret": 0.24352065863647485,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 12,
+          "input_sha256": "41d1ba5debed41a0dd361f1c9bdd7bd4d47aa1c647838bfd019d33f00cd75882",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": -0.24187269552766388,
+          "uniform_reward": -0.9957019400970915,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": -1.9936581734072978,
+            "momentum": -0.11753507384493671,
+            "contrarian": -1.8716145131361321
+          },
+          "best_fixed_expert": "cash",
+          "regret": 0.24187269552766388,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 13,
+          "input_sha256": "0fa021279c734d50038e3cb533d3c6e7bb5f32e189c9b583736f86a6fc1a3431",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": -0.22365972134224466,
+          "uniform_reward": -1.0479071467679133,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": -2.1002242086186724,
+            "momentum": -0.07380329113363461,
+            "contrarian": -2.017601087319347
+          },
+          "best_fixed_expert": "cash",
+          "regret": 0.22365972134224466,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 14,
+          "input_sha256": "05b6e6f5b6c1012b5454881bc55351078856fc2f364398fcf90adc678aac4c1d",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": -0.2478673769739118,
+          "uniform_reward": -0.9929643408234121,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": -1.9918603962698076,
+            "momentum": -0.13276178634505853,
+            "contrarian": -1.8472351806787826
+          },
+          "best_fixed_expert": "cash",
+          "regret": 0.2478673769739118,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 15,
+          "input_sha256": "e04dbdeac2d0af55ba6ff6eeaa9dac784dc94f879ec842b8852c73dd36b80fb5",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": -0.27103472884406493,
+          "uniform_reward": -0.8620869111678844,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": -1.7215214009202475,
+            "momentum": -0.19875534492795366,
+            "contrarian": -1.5280708988233358
+          },
+          "best_fixed_expert": "cash",
+          "regret": 0.27103472884406493,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 16,
+          "input_sha256": "3933d72d56a5f265afc55d85fc91c0b1d727eb4909f7bf3cfa40253448d4305e",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": -0.2476066624714502,
+          "uniform_reward": -1.1117435384751302,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": -2.226871849201119,
+            "momentum": -0.1316609128479346,
+            "contrarian": -2.088441391851466
+          },
+          "best_fixed_expert": "cash",
+          "regret": 0.2476066624714502,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 17,
+          "input_sha256": "2dde922da4900e83b0bea694d6a53d64500a12feb02cc40921f05c5168238c24",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": -0.24805878318303143,
+          "uniform_reward": -1.0638170890231047,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": -2.1294143389490845,
+            "momentum": -0.13243949915765216,
+            "contrarian": -1.9934145179856821
+          },
+          "best_fixed_expert": "cash",
+          "regret": 0.24805878318303143,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 18,
+          "input_sha256": "a5c4e46ed53376300671bde0e068dbb6ec5b9c1ab7f156144413d15a2633ff83",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": -0.24701133979567302,
+          "uniform_reward": -0.957510430079507,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": -1.9202082115256816,
+            "momentum": -0.13063902268981656,
+            "contrarian": -1.7791944861025288
+          },
+          "best_fixed_expert": "cash",
+          "regret": 0.24701133979567302,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 19,
+          "input_sha256": "99ea7f16e5014ac62207da6570e83252e7f856c790e27bf4878ff0c22db8d9a2",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": -0.25209285638642304,
+          "uniform_reward": -1.0269084893940614,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": -2.0540457205201204,
+            "momentum": -0.1445737380802248,
+            "contrarian": -1.909014498975901
+          },
+          "best_fixed_expert": "cash",
+          "regret": 0.25209285638642304,
+          "regret_upper_bound": 0.7446594822118068
+        }
+      ],
+      "mean_reward": -0.2502297032721439,
+      "mean_uniform_reward": -0.9931777531572772,
+      "mean_regret": 0.2502297032721439,
+      "std_regret": 0.011011918510620139
+    },
+    {
+      "scenario": "switching",
+      "runs": [
+        {
+          "seed": 0,
+          "input_sha256": "312088c8f9aab8027534f84a0d16eb8742429d7a76a7ee4100eb4c9e7fc25087",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 0.8889537940021136,
+          "uniform_reward": 0.06532340402455418,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": 0.13709102656435904,
+            "momentum": 1.2612154117783745,
+            "contrarian": -1.1370128222445177
+          },
+          "best_fixed_expert": "momentum",
+          "regret": 0.3722616177762609,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 1,
+          "input_sha256": "b897f256d4050741dd59eb959b1fe236b77231c3e1a09999af0f92954163db99",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 0.9147710415202074,
+          "uniform_reward": -0.002232117200125017,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": -0.0051205919591259755,
+            "momentum": 1.289466169997316,
+            "contrarian": -1.2932740468386896
+          },
+          "best_fixed_expert": "momentum",
+          "regret": 0.3746951284771086,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 2,
+          "input_sha256": "0a981bff37334461f2ef757463f430def798fb595217bc8b7756aafd347fc2bc",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 1.010363881920321,
+          "uniform_reward": 0.027011457661867737,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": 0.06158325804262796,
+            "momentum": 1.3857771721003176,
+            "contrarian": -1.3393145994954754
+          },
+          "best_fixed_expert": "momentum",
+          "regret": 0.3754132901799967,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 3,
+          "input_sha256": "25548361f90f3f912833eb3dacb1a317a5dd66a7baaab2797db2f3e1b264cbaa",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 0.9217423284414052,
+          "uniform_reward": 0.024862753601859265,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": 0.05010515347463744,
+            "momentum": 1.2958358063195954,
+            "contrarian": -1.2464899453867946
+          },
+          "best_fixed_expert": "momentum",
+          "regret": 0.37409347787819014,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 4,
+          "input_sha256": "a304069c204dde309c9e149645d5370857e1290d3e1eb624797b1564a06623a6",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 1.004893873675601,
+          "uniform_reward": 0.08767222268159969,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": 0.17570492626057377,
+            "momentum": 1.3797719145488567,
+            "contrarian": -1.20478795008303
+          },
+          "best_fixed_expert": "momentum",
+          "regret": 0.3748780408732557,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 5,
+          "input_sha256": "ee10e1e92ee61bd0b301804507e06d2f0d22f039c5b95a5bc76c72a1ac977bb6",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 0.9161367114379859,
+          "uniform_reward": -0.015966604769716168,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": -0.02770419259053507,
+            "momentum": 1.2910955293614699,
+            "contrarian": -1.3272577558497987
+          },
+          "best_fixed_expert": "momentum",
+          "regret": 0.37495881792348396,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 6,
+          "input_sha256": "cb9b737ead56ac7c7b3cacfdc7a11fc693156707e47e9a4ee2e61ec4a47ae0e3",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 0.9273016189363278,
+          "uniform_reward": 0.017791396931450137,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": 0.041516194700516894,
+            "momentum": 1.3015560787857106,
+            "contrarian": -1.2719066857604278
+          },
+          "best_fixed_expert": "momentum",
+          "regret": 0.37425445984938277,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 7,
+          "input_sha256": "e4acb56cf3abc7ac48c6efdda8f2924f72dd00c263792433a3979a5a25afd19a",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 0.7318440549634341,
+          "uniform_reward": -0.10090482241685073,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": -0.20057131718536986,
+            "momentum": 1.1043522790769933,
+            "contrarian": -1.3074002515590273
+          },
+          "best_fixed_expert": "momentum",
+          "regret": 0.3725082241135592,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 8,
+          "input_sha256": "9164cfc5849073ed9f8c7c6c0a1a1ff7ed9ddd9a8d63c664ee4154a07dfdb1fd",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 0.994329568041525,
+          "uniform_reward": 0.0901215053401103,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": 0.1805100692740311,
+            "momentum": 1.3682965631412338,
+            "contrarian": -1.1883206110548232
+          },
+          "best_fixed_expert": "momentum",
+          "regret": 0.3739669950997089,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 9,
+          "input_sha256": "bab05da4f0911938ee1ac0fcf2d8303900bdd631a4ae5b1c2bf7feba4c7a8dbb",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 0.734764600720499,
+          "uniform_reward": -0.08154926803406175,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": -0.1604684624899733,
+            "momentum": 1.1068675918649349,
+            "contrarian": -1.272596201511209
+          },
+          "best_fixed_expert": "momentum",
+          "regret": 0.3721029911444359,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 10,
+          "input_sha256": "3017e3b9dd79f7155a17276fe32d62d33e5505c377d63250f898e4cfece2569e",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 1.0364944215531362,
+          "uniform_reward": -0.003687980499500347,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": -0.003661935052101526,
+            "momentum": 1.4120300297837076,
+            "contrarian": -1.4231200167296068
+          },
+          "best_fixed_expert": "momentum",
+          "regret": 0.3755356082305714,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 11,
+          "input_sha256": "8d66abbc6819a02fd4fc80e3644e8cf6c792d2b21731e2f3f7613fb6ebf360fd",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 0.9450183468317228,
+          "uniform_reward": 0.05664287536137238,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": 0.11580954625784294,
+            "momentum": 1.3193097058569392,
+            "contrarian": -1.2085477506692923
+          },
+          "best_fixed_expert": "momentum",
+          "regret": 0.3742913590252164,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 12,
+          "input_sha256": "301d651f9c627d92e4ec07fdd818bd1a46e6eddbe56fe6813f1a939b86d3f061",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 1.0359942421497463,
+          "uniform_reward": 0.0017980599029081903,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": 0.006341826592701841,
+            "momentum": 1.4116080501625983,
+            "contrarian": -1.410757637143667
+          },
+          "best_fixed_expert": "momentum",
+          "regret": 0.37561380801285194,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 13,
+          "input_sha256": "bffdf954ff49b425899c7c347284ba589ac0e11081ffc2a1c5b58ec932abcb4f",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 0.8946365279386219,
+          "uniform_reward": -0.050407146767912886,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": -0.1002242086186711,
+            "momentum": 1.2693036845418735,
+            "contrarian": -1.3707080629948545
+          },
+          "best_fixed_expert": "momentum",
+          "regret": 0.37466715660325156,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 14,
+          "input_sha256": "29c41024b90f74f5451f47b251d99a6530c194c8aa3c9a4fe85925daa9d3e5df",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 0.9024192621339456,
+          "uniform_reward": 0.004535659176588349,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": 0.008139603730193228,
+            "momentum": 1.2766631092304932,
+            "contrarian": -1.2666600762543325
+          },
+          "best_fixed_expert": "momentum",
+          "regret": 0.37424384709654757,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 15,
+          "input_sha256": "56ee5f189d56a29740f43dda15338d9390cc1806c0b2bb97d56162cec5c70304",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 1.0981960988609503,
+          "uniform_reward": 0.1354130888321161,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": 0.27847859907975325,
+            "momentum": 1.4729259974666382,
+            "contrarian": -1.2097522412179276
+          },
+          "best_fixed_expert": "momentum",
+          "regret": 0.37472989860568795,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 16,
+          "input_sha256": "d3f1e19b76fcba9676bd77a7b6ca2f6ba5e6412d749b452f3c45a0caa07d6a9c",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 0.7840027467642384,
+          "uniform_reward": -0.11424353847512977,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": -0.2268718492011188,
+            "momentum": 1.1577776801981632,
+            "contrarian": -1.3878799848975643
+          },
+          "best_fixed_expert": "momentum",
+          "regret": 0.37377493343392476,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 17,
+          "input_sha256": "d39ba8e6fc46864c1df3bd0f83c909c98d2f7e879e10054ac86ce421848410b6",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 0.89965786306569,
+          "uniform_reward": -0.0663170890231044,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": -0.12941433894908397,
+            "momentum": 1.2745984873200074,
+            "contrarian": -1.410452504463342
+          },
+          "best_fixed_expert": "momentum",
+          "regret": 0.3749406242543174,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 18,
+          "input_sha256": "06dd8180e8c2f12c09fce378869f6e74d5328b7c5368a52425d24b4e5bfc75b3",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 1.0190403280401348,
+          "uniform_reward": 0.039989569920493996,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": 0.07979178847432018,
+            "momentum": 1.394222997325922,
+            "contrarian": -1.3140565061182665
+          },
+          "best_fixed_expert": "momentum",
+          "regret": 0.37518266928578714,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 19,
+          "input_sha256": "f615f16e5dcb8677ffa2350e5ca3e2f53de6a4166a9eaf6c868b8ff6b6f97d85",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 0.9628855929047834,
+          "uniform_reward": -0.029408489394062334,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": -0.054045720520122006,
+            "momentum": 1.3379084580522174,
+            "contrarian": -1.4014966951083454
+          },
+          "best_fixed_expert": "momentum",
+          "regret": 0.375022865147434,
+          "regret_upper_bound": 0.7446594822118068
+        }
+      ],
+      "mean_reward": 0.9311723451951195,
+      "mean_uniform_reward": 0.0043222468427228464,
+      "mean_regret": 0.37435679065054867,
+      "std_regret": 0.001026248556264645
+    },
+    {
+      "scenario": "noise",
+      "runs": [
+        {
+          "seed": 0,
+          "input_sha256": "924d2b76328236f387a651ffa272b3e3f3144a3cf4cef3bed21d83f1991ccd5b",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 0.06444154226103604,
+          "uniform_reward": 0.06682340402455422,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": 0.13709102656435895,
+            "momentum": 0.09716997190904815,
+            "contrarian": 0.033032617624809774
+          },
+          "best_fixed_expert": "long",
+          "regret": 0.07264948430332291,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 1,
+          "input_sha256": "7da6f2ef1c8c540742783ad908d5f5e8a5b9b66e7aac7e17957ee8e3e3fd924f",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": -0.00798029792767398,
+          "uniform_reward": -0.0007321172001250259,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": -0.005120591959125962,
+            "momentum": -0.026979831135324654,
+            "contrarian": 0.029171954293950544
+          },
+          "best_fixed_expert": "contrarian",
+          "regret": 0.03715225222162452,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 2,
+          "input_sha256": "7a228c74efef92c092c4948621a87a32089c1e4ee6870fde3c1cac0fedb68d0f",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 0.04035292000105376,
+          "uniform_reward": 0.028511457661867856,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": 0.06158325804262826,
+            "momentum": 0.16871445450418496,
+            "contrarian": -0.11625188189934171
+          },
+          "best_fixed_expert": "momentum",
+          "regret": 0.1283615345031312,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 3,
+          "input_sha256": "4b0cc54e06294752c70659f8febeffb1857fc68f7882f041b4480963440570f8",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 0.02027032147978083,
+          "uniform_reward": 0.026362753601859343,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": 0.050105153474637586,
+            "momentum": 0.0011057300771387685,
+            "contrarian": 0.05424013085566099
+          },
+          "best_fixed_expert": "contrarian",
+          "regret": 0.033969809375880164,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 4,
+          "input_sha256": "721ae6ae14a13cd829fc052d6668f46779f6af8844903156e6bcb16b1b97c8cf",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 0.08817576963668526,
+          "uniform_reward": 0.0891722226815999,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": 0.17570492626057407,
+            "momentum": 0.06797565401352355,
+            "contrarian": 0.11300831045230171
+          },
+          "best_fixed_expert": "long",
+          "regret": 0.08752915662388881,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 5,
+          "input_sha256": "0e80974369fa92ae3b31744921c8751295902bb188fa4b9a76fb77221c396722",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": -0.022134906739724798,
+          "uniform_reward": -0.014466604769716077,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": -0.027704192590535102,
+            "momentum": -0.021738917696617885,
+            "contrarian": -0.008423308791711243
+          },
+          "best_fixed_expert": "cash",
+          "regret": 0.022134906739724798,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 6,
+          "input_sha256": "60092981d9d66dec6119477b22cbbd3e697c297f3a2acb5b65098b1888f59a33",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 0.011553679615362404,
+          "uniform_reward": 0.019291396931450096,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": 0.04151619470051684,
+            "momentum": 0.009476771600995951,
+            "contrarian": 0.026172621424287584
+          },
+          "best_fixed_expert": "long",
+          "regret": 0.029962515085154434,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 7,
+          "input_sha256": "9df25d95cd8a5a7483cecee24dc1f8d42d7fd1b42e4e3af60723ade33118f100",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": -0.0640247035348366,
+          "uniform_reward": -0.09940482241685078,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": -0.20057131718536997,
+            "momentum": 0.09632354119506906,
+            "contrarian": -0.29337151367710224
+          },
+          "best_fixed_expert": "momentum",
+          "regret": 0.16034824472990566,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 8,
+          "input_sha256": "323e27d9dfffabc75c6bda1700186ce3247c1fee5b033423f3218cb76d1cbd2a",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 0.09371053813422865,
+          "uniform_reward": 0.09162150534011021,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": 0.18051006927403088,
+            "momentum": 0.14030788759146587,
+            "contrarian": 0.045668064494944066
+          },
+          "best_fixed_expert": "long",
+          "regret": 0.08679953113980222,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 9,
+          "input_sha256": "644f767cf4e34ce96ec0bc09fab61ed56cf6113b33eff4d9a6af82d685dae95d",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": -0.07839003046006139,
+          "uniform_reward": -0.08004926803406166,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": -0.16046846248997312,
+            "momentum": -0.14533929673975976,
+            "contrarian": -0.014389312906513798
+          },
+          "best_fixed_expert": "cash",
+          "regret": 0.07839003046006139,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 10,
+          "input_sha256": "df5b9d1cdfe3bb5c1c000eb0f11aae288fc7448c46c4c344a25626e284013b54",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": -0.005817168805886112,
+          "uniform_reward": -0.0021879804995003603,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": -0.003661935052101597,
+            "momentum": 0.06171094997194533,
+            "contrarian": -0.06680093691784518
+          },
+          "best_fixed_expert": "momentum",
+          "regret": 0.06752811877783144,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 11,
+          "input_sha256": "059cafea196a524be0189e96b3e81157dc1d881577580f202ae64fa4ee2b96f9",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 0.0550720294431027,
+          "uniform_reward": 0.05814287536137237,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": 0.11580954625784293,
+            "momentum": 0.1017599432934337,
+            "contrarian": 0.015002011894212755
+          },
+          "best_fixed_expert": "long",
+          "regret": 0.060737516814740225,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 12,
+          "input_sha256": "7037cf74c972a2bdcd30d02ee30007b0b1311d7e5bc4190eb1178acc2970113a",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 0.0007023080256066891,
+          "uniform_reward": 0.0032980599029081735,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": 0.006341826592701832,
+            "momentum": 0.07427903002985846,
+            "contrarian": -0.06742861701092755
+          },
+          "best_fixed_expert": "momentum",
+          "regret": 0.07357672200425178,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 13,
+          "input_sha256": "d03453aab30e3f4f2fc3295ad8f2ba40cd95053fc967dbe9ce91b7c1e8f32e12",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": -0.05199772082899549,
+          "uniform_reward": -0.04890714676791303,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": -0.10022420861867139,
+            "momentum": -0.0011318877051017728,
+            "contrarian": -0.09427249074787884
+          },
+          "best_fixed_expert": "cash",
+          "regret": 0.05199772082899549,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 14,
+          "input_sha256": "122ab603984bfbbc49594e8e20ced7bf1f9b8f4571975e1200343c420838ca6f",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 0.0013923019740352512,
+          "uniform_reward": 0.006035659176588255,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": 0.008139603730193094,
+            "momentum": 0.06702583260703016,
+            "contrarian": -0.051022799630870266
+          },
+          "best_fixed_expert": "momentum",
+          "regret": 0.0656335306329949,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 15,
+          "input_sha256": "6a9a955e9d11c66f66befe23a1ed65fe8d9b2a180e14acce04254d4becf4044b",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 0.15071804138189485,
+          "uniform_reward": 0.13691308883211634,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": 0.278478599079754,
+            "momentum": 0.07194708477152292,
+            "contrarian": 0.19722667147718856
+          },
+          "best_fixed_expert": "long",
+          "regret": 0.12776055769785913,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 16,
+          "input_sha256": "0c95185460b7aea161c2d3b5d0508ca288b69d1534d3b08c1cab6fdb0f520579",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": -0.10752843665984672,
+          "uniform_reward": -0.11274353847512973,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": -0.22687184920111877,
+            "momentum": -0.07228889161397412,
+            "contrarian": -0.1518134130854262
+          },
+          "best_fixed_expert": "cash",
+          "regret": 0.10752843665984672,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 17,
+          "input_sha256": "ccb4f3a627614b41c368c4022313a6d93fffe8306646e6291a56b6d819bc594b",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": -0.0636703131000149,
+          "uniform_reward": -0.0648170890231042,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": -0.12941433894908344,
+            "momentum": 0.008928860476836824,
+            "contrarian": -0.13878287762017005
+          },
+          "best_fixed_expert": "momentum",
+          "regret": 0.07259917357685172,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 18,
+          "input_sha256": "e49262e13c03f3fed0e07d74f15ecfc8186f288cdf55eb727ef2c2422f6f12f7",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": 0.038803524488294126,
+          "uniform_reward": 0.041489569920493935,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": 0.07979178847432004,
+            "momentum": -0.018807274866753786,
+            "contrarian": 0.10497376607440943
+          },
+          "best_fixed_expert": "contrarian",
+          "regret": 0.06617024158611531,
+          "regret_upper_bound": 0.7446594822118068
+        },
+        {
+          "seed": 19,
+          "input_sha256": "4c2ecffea274fe3870e29d8697d1a40411345403d3f4b740188d0042f647a05d",
+          "rounds": 500,
+          "horizon": 500,
+          "eta": 0.14893189644236138,
+          "reward_bound": 0.02,
+          "cumulative_reward": -0.03465478264230076,
+          "uniform_reward": -0.0279084893940623,
+          "expert_rewards": {
+            "cash": 0.0,
+            "long": -0.054045720520121895,
+            "momentum": -0.03259736081848461,
+            "contrarian": -0.02499087623764279
+          },
+          "best_fixed_expert": "cash",
+          "regret": 0.03465478264230076,
+          "regret_upper_bound": 0.7446594822118068
+        }
+      ],
+      "mean_reward": 0.006449730787086991,
+      "mean_uniform_reward": 0.005822246842722877,
+      "mean_regret": 0.07327421332021418,
+      "std_regret": 0.03609622128114984
+    }
+  ]
+}

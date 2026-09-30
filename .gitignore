@@ -16,3 +16,13 @@ consignes
 
 # ignore ressources
 ressources
+!requirements.txt
+!requirements-dev.txt
+!src/requirements-legacy.txt
+.env
+.env.*
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+output/
