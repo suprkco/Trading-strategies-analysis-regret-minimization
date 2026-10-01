@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/suprkco/Trading-strategies-analysis-regret-minimization/actions/workflows/ci.yml/badge.svg)](https://github.com/suprkco/Trading-strategies-analysis-regret-minimization/actions/workflows/ci.yml)
 
-**A terminal-first laboratory for online learning with expert advice, explicit external regret and reproducible synthetic experiments.**
+**A laboratory for online learning with expert advice, explicit external regret and reproducible synthetic experiments, in the terminal or as an animated web view.**
 
 ## Problem
 
@@ -29,7 +29,17 @@ External regret:   0.375759
 Analytical bound:  0.744659
 ```
 
-Actual output from the bundled synthetic generator. No browser, API key, external market data or runtime dependency is required. [Interview walkthrough](docs/interview.md).
+Actual output from the bundled synthetic generator. No API key, external market data or runtime dependency is required. [Interview walkthrough](docs/interview.md).
+
+### Animated web view
+
+```sh
+python -m regret_lab.web   # http://127.0.0.1:8000
+```
+
+![Animated replay: cumulative reward, Hedge weights shifting to momentum, regret under its bound](docs/web-demo.png)
+
+The page replays, round by round, the trace returned by the same `evaluate()` function the CLI uses: cumulative reward per policy, Hedge's weight on each expert, and regret against the analytical bound. The browser only draws; it does not recompute anything. Choose scenario, seed and horizon (up to 2,000 rounds); hover for per-round values, scrub or press space to pause. The server is the standard library's `http.server`, so the zero-dependency property holds. [render.yaml](render.yaml) deploys it as a free Render web service.
 
 ## Architecture
 
@@ -47,7 +57,7 @@ flowchart LR
 
 ## Tech stack
 
-Python 3.10+ standard library, pytest, Ruff and GitHub Actions. No LLM: this project demonstrates online learning, experimental design and causal evaluation order.
+Python 3.10+ standard library (including `http.server` for the web view), HTML canvas without a charting library, pytest, Ruff and GitHub Actions. No LLM: this project demonstrates online learning, experimental design and causal evaluation order.
 
 ## Quickstart
 
@@ -76,7 +86,7 @@ Measured locally on 2026-09-30, Python 3.10.4: **20 seeds (0-19), 500 rounds per
 
 Reward is a **sum of per-round rewards**, not a percentage, wealth curve or annualized return. In the downward scenario, adaptation still loses against cash. These are constructed development scenarios, not held-out financial evidence.
 
-[Complete results](evaluation/results.json) record each seed, input hash, expert totals, learning rate, timestamp and Python version. The 18-test local suite covers hand-calculated updates, probability normalization, bounded inputs, deterministic generation, CLI validation and independence from future outcomes. CI runs Python 3.10 and 3.12.
+[Complete results](evaluation/results.json) record each seed, input hash, expert totals, learning rate, timestamp and Python version. The 24-test local suite covers hand-calculated updates, probability normalization, bounded inputs, deterministic generation, CLI and web parameter validation, web routes and independence from future outcomes. CI runs Python 3.10 and 3.12.
 
 ## Design choices
 

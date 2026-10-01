@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Online Regret Lab</title>
+<meta name="description" content="Watch Hedge (exponential weights) learn which expert to trust, round by round, on synthetic reward sequences.">
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #111110; --surface: #1a1a19; --border: #2e2e2b; --grid: #2a2a27;
+  --text: #f4f3ee; --text-2: #c3c2b7; --muted: #8b8a82;
+  --hedge: #3987e5; --cash: #d95926; --long: #199e70; --momentum: #c98500; --contrarian: #d55181;
+  --uniform: #8b8a82; --bound: #8b8a82;
+  --pos: #3987e5; --neg: #e66767; --band: rgba(255,255,255,.035);
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    color-scheme: light;
+    --bg: #f4f3ee; --surface: #fcfcfb; --border: #dddcd5; --grid: #ebeae4;
+    --text: #0b0b0b; --text-2: #52514e; --muted: #77766f;
+    --hedge: #2a78d6; --cash: #eb6834; --long: #1baf7a; --momentum: #eda100; --contrarian: #e87ba4;
+    --uniform: #8b8a82; --bound: #77766f;
+    --pos: #2a78d6; --neg: #e34948; --band: rgba(0,0,0,.035);
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+main { max-width: 1180px; margin: 0 auto; padding: 24px 16px 48px; }
+header { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
+header a { color: var(--text); text-decoration: none; font-weight: 700; }
+header span, .muted { color: var(--muted); }
+h1 { font-size: clamp(20px, 3.4vw, 30px); line-height: 1.2; margin: 24px 0 6px; font-weight: 600; letter-spacing: -.01em; }
+.lede { color: var(--text-2); max-width: 780px; margin: 0 0 20px; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: end; margin-bottom: 16px; }
+.controls label { display: grid; gap: 4px; font-size: 12px; color: var(--muted); }
+select, input[type=number], button { font: inherit; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; }
+input[type=number] { width: 96px; }
+button { cursor: pointer; }
+button.primary { background: var(--hedge); border-color: var(--hedge); color: #fff; font-weight: 600; min-width: 92px; }
+button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--hedge); outline-offset: 2px; }
+.scrub { display: flex; align-items: center; gap: 12px; margin: 4px 0 16px; }
+.scrub input { flex: 1; accent-color: var(--hedge); }
+.scrub output { min-width: 120px; text-align: right; color: var(--text-2); font-variant-numeric: tabular-nums; }
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 16px; }
+.stat { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
+.stat small { display: block; color: var(--muted); font-size: 12px; }
+.stat b { display: block; font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.stat i { font-style: normal; color: var(--text-2); font-size: 12px; }
+.grid { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; }
+.panel { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 12px 8px; position: relative; min-width: 0; }
+.panel h2 { font-size: 13px; font-weight: 600; margin: 0 0 2px; }
+.panel p { margin: 0 0 6px; font-size: 12px; color: var(--muted); }
+.panel canvas { display: block; width: 100%; touch-action: none; }
+.wide { grid-column: 1 / -1; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--text-2); margin-top: 6px; }
+.legend span::before { content: ''; display: inline-block; width: 12px; height: 3px; border-radius: 2px; background: var(--c); margin-right: 6px; vertical-align: middle; }
+.legend span.band::before { height: 10px; background: var(--band); outline: 1px solid var(--border); }
+.legend span.dash::before { background: repeating-linear-gradient(90deg, var(--c) 0 4px, transparent 4px 7px); }
+.weights { display: grid; gap: 10px; margin-top: 8px; }
+.wrow { display: grid; grid-template-columns: 88px 1fr 52px; align-items: center; gap: 8px; font-size: 12px; color: var(--text-2); }
+.wrow .track { height: 10px; background: var(--grid); border-radius: 4px; overflow: hidden; }
+.wrow .fill { height: 100%; width: 25%; background: var(--c); border-radius: 4px; }
+.wrow output { text-align: right; font-variant-numeric: tabular-nums; color: var(--text); }
+.tip { position: absolute; pointer-events: none; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font-size: 12px; white-space: nowrap; display: none; z-index: 2; box-shadow: 0 4px 16px rgba(0,0,0,.25); }
+.tip div { display: flex; justify-content: space-between; gap: 14px; }
+.tip i { font-style: normal; color: var(--muted); }
+.explain { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 20px; font-size: 13px; color: var(--text-2); }
+.explain b { color: var(--text); display: block; margin-bottom: 2px; }
+details { margin-top: 20px; }
+summary { cursor: pointer; color: var(--text-2); }
+table { border-collapse: collapse; margin-top: 8px; font-variant-numeric: tabular-nums; }
+td, th { padding: 4px 16px 4px 0; text-align: right; border-bottom: 1px solid var(--grid); }
+td:first-child, th:first-child { text-align: left; }
+footer { margin-top: 28px; padding-top: 12px; border-top: 1px solid var(--border); color: var(--muted); font-size: 12px; }
+footer a { color: var(--text-2); }
+.error { color: var(--neg); }
+@media (max-width: 760px) {
+  .grid, .explain { grid-template-columns: 1fr; }
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (prefers-reduced-motion: reduce) { .wrow .fill { transition: none; } }
+</style>
+</head>
+<body>
+<main>
+  <header><a href="https://github.com/suprkco/Trading-strategies-analysis-regret-minimization">regret / online learning lab</a><span>synthetic data · computed by the Python core</span></header>
+  <h1>Watch Hedge learn which expert to trust</h1>
+  <p class="lede">Four fixed experts bet on a synthetic return each round. Hedge spreads its weight across them <em>before</em> the return is revealed, then shrinks the weight of whoever lost. Regret is how far it ends up behind the single best expert chosen with hindsight.</p>
+
+  <form class="controls" id="form">
+    <label>Scenario<select id="scenario">
+      <option value="switching">switching regimes</option><option value="up">upward drift</option>
+      <option value="down">downward drift</option><option value="noise">pure noise</option></select></label>
+    <label>Seed<input id="seed" type="number" min="0" max="1000000" value="42"></label>
+    <label>Rounds<input id="rounds" type="number" min="10" max="2000" step="10" value="500"></label>
+    <label>Speed<select id="speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select></label>
+    <button type="submit">Run</button>
+    <button type="button" class="primary" id="play" aria-label="Pause">Pause</button>
+  </form>
+  <div class="scrub"><input id="scrub" type="range" min="1" max="500" value="1" aria-label="Round"><output id="roundOut">round 0 / 0</output></div>
+
+  <div class="stats" aria-live="polite">
+    <div class="stat"><small>Hedge cumulative reward</small><b id="sHedge">–</b><i id="sUniform">uniform –</i></div>
+    <div class="stat"><small>Best fixed expert so far</small><b id="sBest">–</b><i id="sBestVal">–</i></div>
+    <div class="stat"><small>External regret</small><b id="sRegret">–</b><i id="sBound">bound –</i></div>
+    <div class="stat"><small>This round's return</small><b id="sReturn">–</b><i id="sRegime">–</i></div>
+  </div>
+
+  <div class="grid">
+    <section class="panel"><h2>Cumulative reward</h2><p>Additive score per policy, not a compounded investment return.</p>
+      <canvas id="cReward" height="300" aria-label="Cumulative reward of Hedge, uniform mixture and four experts"></canvas>
+      <div class="legend" id="legReward"></div><div class="tip" id="tipReward"></div></section>
+    <section class="panel"><h2>Hedge weights now</h2><p>Probability on each expert at the current round.</p>
+      <div class="weights" id="wBars"></div>
+      <canvas id="cWeights" height="230" aria-label="Hedge weight share per expert over time" style="margin-top:14px"></canvas>
+      <div class="tip" id="tipWeights"></div></section>
+    <section class="panel wide"><h2>Regret vs analytical bound</h2><p>Best fixed expert's reward minus Hedge's. The guarantee says it stays under the dashed line.</p>
+      <canvas id="cRegret" height="170" aria-label="External regret and its analytical upper bound"></canvas>
+      <div class="legend" id="legRegret"></div><div class="tip" id="tipRegret"></div></section>
+  </div>
+
+  <div class="explain">
+    <div><b>Causal order</b>Weights and exposures are fixed, then the return is revealed, scored, and losses update. No expert sees the future.</div>
+    <div><b>Exponential weights</b>Each expert's weight is proportional to exp(−η · cumulative loss), with η chosen from the horizon only.</div>
+    <div><b>What to look for</b>In switching regimes, weight drifts to momentum after each turn; regret flattens instead of growing linearly.</div>
+  </div>
+
+  <details><summary>Final totals as a table</summary><table id="table"></table><p class="muted" id="hash"></p></details>
+  <p class="error" id="error" role="alert"></p>
+  <footer>Synthetic, bounded rewards. No market data, costs, slippage or order execution; not investment evidence. The animation replays the trace returned by <code>regret_lab.core.evaluate</code> (<a href="/api/run">raw JSON</a>). <a href="https://github.com/suprkco/Trading-strategies-analysis-regret-minimization">Code, method and evaluation ↗</a></footer>
+</main>
+<script>
+const EXPERTS = ['cash', 'long', 'momentum', 'contrarian'];
+const $ = id => document.getElementById(id);
+const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+const fmt = (v, d = 4) => (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(d);
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+let data = null, series = null, t = 0, playing = !reduced, last = 0, hover = null;
+
+function build(d) {
+  const n = d.trace.length, totals = EXPERTS.map(() => 0), experts = EXPERTS.map(() => []);
+  const hedge = [], uniform = [], regret = [], bound = [], best = [];
+  let u = 0;
+  const lnK = Math.log(EXPERTS.length);
+  d.trace.forEach((r, i) => {
+    r.expert_rewards.forEach((g, k) => { totals[k] += g; experts[k].push(totals[k]); });
+    u += r.expert_rewards.reduce((a, b) => a + b, 0) / EXPERTS.length;
+    hedge.push(r.cumulative_reward); uniform.push(u); regret.push(r.regret);
+    bound.push(2 * d.reward_bound * (lnK / d.eta + d.eta * (i + 1) / 8));
+    best.push(totals.indexOf(Math.max(...totals)));
+  });
+  return { n, hedge, uniform, experts, regret, bound, best };
+}
+
+function regimeOf(i) {
+  if (data.scenario !== 'switching') return { up: 'drift +0.004', down: 'drift −0.004', noise: 'no drift' }[data.scenario];
+  return Math.floor(i / 50) % 2 === 0 ? 'regime: drift +0.006' : 'regime: drift −0.006';
+}
+
+function setup(canvas) {
+  const ratio = devicePixelRatio || 1, w = canvas.clientWidth, h = +canvas.getAttribute('height');
+  if (canvas.width !== Math.round(w * ratio)) { canvas.width = Math.round(w * ratio); canvas.height = Math.round(h * ratio); canvas.style.height = h + 'px'; }
+  const ctx = canvas.getContext('2d'); ctx.setTransform(ratio, 0, 0, ratio, 0, 0); ctx.clearRect(0, 0, w, h);
+  return { ctx, w, h };
+}
+
+function frame(canvas, lists, pad = { l: 52, r: 86, t: 8, b: 22 }) {
+  const { ctx, w, h } = setup(canvas);
+  let lo = Infinity, hi = -Infinity;
+  lists.forEach(a => a.forEach(v => { lo = Math.min(lo, v); hi = Math.max(hi, v); }));
+  lo = Math.min(lo, 0); hi = Math.max(hi, 0);
+  const raw = ((hi - lo) || 1) / 4, mag = 10 ** Math.floor(Math.log10(raw)), step = [1, 2, 2.5, 5, 10].map(m => m * mag).find(s => s >= raw);
+  lo = Math.floor(lo / step) * step; hi = Math.ceil(hi / step) * step;
+  const x = i => pad.l + (w - pad.l - pad.r) * (series.n === 1 ? 0 : i / (series.n - 1));
+  const y = v => pad.t + (h - pad.t - pad.b) * (1 - (v - lo) / (hi - lo));
+  if (data.scenario === 'switching') {
+    ctx.fillStyle = css('--band');
+    for (let s = 50; s < series.n; s += 100) ctx.fillRect(x(s), pad.t, x(Math.min(s + 50, series.n - 1)) - x(s), h - pad.t - pad.b);
+  }
+  ctx.font = '11px ui-monospace, monospace'; ctx.fillStyle = css('--muted'); ctx.strokeStyle = css('--grid'); ctx.lineWidth = 1;
+  for (let v = lo; v <= hi + step / 2; v += step) {
+    const yy = Math.round(y(v)) + .5;
+    ctx.beginPath(); ctx.moveTo(pad.l, yy); ctx.lineTo(w - pad.r, yy); ctx.stroke();
+    ctx.textAlign = 'right'; ctx.fillText(Math.abs(v) < step / 2 ? '0' : v.toFixed(step < .1 ? 2 : 1), pad.l - 6, yy + 4);
+  }
+  ctx.textAlign = 'center';
+  [0, .5, 1].forEach(f => { const i = Math.round(f * (series.n - 1)); ctx.fillText(i + 1, x(i), h - 6); });
+  return { ctx, w, h, x, y, pad };
+}
+
+function line(f, values, upto, color, width = 2, dash = []) {
+  const { ctx, x, y } = f; ctx.save(); ctx.strokeStyle = color; ctx.lineWidth = width; ctx.setLineDash(dash); ctx.lineJoin = 'round';
+  ctx.beginPath(); for (let i = 0; i <= upto; i++) i ? ctx.lineTo(x(i), y(values[i])) : ctx.moveTo(x(i), y(values[i])); ctx.stroke(); ctx.restore();
+}
+
+function endLabels(f, items, upto) {
+  const { ctx, x, y, w, h } = f; const placed = [];
+  items.map(it => ({ ...it, yy: y(it.values[upto]) })).sort((a, b) => a.yy - b.yy).forEach(it => {
+    let yy = Math.max(10, Math.min(h - 26, it.yy)); while (placed.some(p => Math.abs(p - yy) < 13)) yy += 13; placed.push(yy);
+    ctx.fillStyle = it.color; ctx.beginPath(); ctx.arc(x(upto), it.yy, it.bold ? 4.5 : 3.5, 0, 7); ctx.fill();
+    ctx.strokeStyle = css('--surface'); ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = it.bold ? css('--text') : css('--text-2'); ctx.font = (it.bold ? '600 ' : '') + '11px ui-monospace, monospace'; ctx.textAlign = 'left';
+    ctx.fillText(it.name, Math.min(x(upto) + 8, w - 80), yy + 4);
+  });
+}
+
+function crosshair(f, i) {
+  if (i == null) return; const { ctx, x, h, pad } = f;
+  ctx.save(); ctx.strokeStyle = css('--muted'); ctx.setLineDash([2, 3]); ctx.beginPath(); ctx.moveTo(Math.round(x(i)) + .5, pad.t); ctx.lineTo(Math.round(x(i)) + .5, h - pad.b); ctx.stroke(); ctx.restore();
+}
+
+function draw() {
+  if (!series) return;
+  const upto = Math.min(series.n - 1, Math.floor(t)), at = hover ?? upto, colors = EXPERTS.map(e => css('--' + e));
+  const fr = frame($('cReward'), [series.hedge, series.uniform, ...series.experts]);
+  series.experts.forEach((v, k) => line(fr, v, upto, colors[k], 1.5));
+  line(fr, series.uniform, upto, css('--uniform'), 1.5, [4, 3]);
+  line(fr, series.hedge, upto, css('--hedge'), 3);
+  endLabels(fr, [...EXPERTS.map((e, k) => ({ name: e, values: series.experts[k], color: colors[k] })),
+    { name: 'uniform', values: series.uniform, color: css('--uniform') }, { name: 'hedge', values: series.hedge, color: css('--hedge'), bold: true }], upto);
+  crosshair(fr, hover != null && hover <= upto ? hover : null);
+
+  const wc = setup($('cWeights')), pad = 4, W = wc.w - 2 * pad, H = wc.h - 18;
+  for (let i = 0; i <= upto; i++) {
+    let acc = 0; const xx = pad + W * i / Math.max(1, series.n - 1), bw = Math.max(1, W / series.n + .5);
+    data.trace[i].weights.forEach((w, k) => { wc.ctx.fillStyle = colors[k]; wc.ctx.fillRect(xx, 4 + H * acc, bw, Math.max(0, H * w - (k < 3 ? 1 : 0))); acc += w; });
+  }
+  wc.ctx.fillStyle = css('--muted'); wc.ctx.font = '11px ui-monospace, monospace'; wc.ctx.textAlign = 'left'; wc.ctx.fillText('weight share over time →', pad, wc.h - 3);
+  if (hover != null && hover <= upto) { const xx = Math.round(pad + W * hover / Math.max(1, series.n - 1)) + .5; wc.ctx.strokeStyle = css('--text'); wc.ctx.beginPath(); wc.ctx.moveTo(xx, 4); wc.ctx.lineTo(xx, 4 + H); wc.ctx.stroke(); }
+
+  const fg = frame($('cRegret'), [series.regret, series.bound]);
+  line(fg, series.bound, series.n - 1, css('--bound'), 1.5, [5, 4]);
+  line(fg, series.regret, upto, css('--hedge'), 2.5);
+  endLabels(fg, [{ name: 'regret', values: series.regret, color: css('--hedge'), bold: true }], upto);
+  crosshair(fg, hover != null && hover <= upto ? hover : null);
+
+  const r = data.trace[Math.min(at, upto)], i = Math.min(at, upto);
+  r.weights.forEach((w, k) => { const row = $('wBars').children[k]; row.querySelector('.fill').style.width = (w * 100).toFixed(1) + '%'; row.querySelector('output').textContent = (w * 100).toFixed(1) + '%'; });
+  $('sHedge').textContent = fmt(series.hedge[i]); $('sUniform').textContent = 'uniform ' + fmt(series.uniform[i]);
+  $('sBest').textContent = EXPERTS[series.best[i]]; $('sBestVal').textContent = fmt(series.experts[series.best[i]][i]);
+  $('sRegret').textContent = series.regret[i].toFixed(4); $('sBound').textContent = 'bound ' + series.bound[i].toFixed(4);
+  $('sReturn').innerHTML = `<span style="color:${r.return >= 0 ? css('--pos') : css('--neg')}">${r.return >= 0 ? '▲' : '▼'}</span> ${fmt(r.return * 100, 2)}%`; $('sRegime').textContent = regimeOf(i);
+  $('roundOut').textContent = `round ${i + 1} / ${series.n}`; if (hover == null) $('scrub').value = upto + 1;
+}
+
+function tick(now) {
+  const dt = Math.min(64, now - (last || now)); last = now;
+  if (playing && series && t < series.n - 1) {
+    t = Math.min(series.n - 1, t + dt * .06 * +$('speed').value * Math.max(1, series.n / 500));
+    if (t >= series.n - 1) setPlaying(false);
+  }
+  draw(); requestAnimationFrame(tick);
+}
+
+function setPlaying(on) { playing = on; $('play').textContent = on ? 'Pause' : (series && t >= series.n - 1 ? 'Replay' : 'Play'); }
+
+function tips(canvasId, tipId, rows) {
+  const canvas = $(canvasId), tip = $(tipId);
+  const move = e => {
+    if (!series) return; const rect = canvas.getBoundingClientRect(), padL = canvasId === 'cWeights' ? 4 : 52, padR = canvasId === 'cWeights' ? 4 : 86;
+    const f = (e.clientX - rect.left - padL) / (rect.width - padL - padR); const upto = Math.floor(t);
+    if (f < 0 || f > 1) return leave(); hover = Math.min(upto, Math.round(f * (series.n - 1)));
+    tip.innerHTML = `<div><b>round ${hover + 1}</b><i>${regimeOf(hover)}</i></div>` + rows(hover).map(([k, v, c]) => `<div><span><span style="color:${c}">■</span> ${k}</span><span>${v}</span></div>`).join('');
+    tip.style.display = 'block'; const px = e.clientX - rect.left + canvas.offsetLeft;
+    tip.style.left = Math.min(px + 14, canvas.offsetLeft + rect.width - tip.offsetWidth) + 'px'; tip.style.top = (canvas.offsetTop + 8) + 'px';
+  };
+  const leave = () => { hover = null; tip.style.display = 'none'; };
+  canvas.addEventListener('pointermove', move); canvas.addEventListener('pointerleave', leave);
+}
+
+async function load() {
+  $('error').textContent = '';
+  const q = new URLSearchParams({ scenario: $('scenario').value, seed: $('seed').value, rounds: $('rounds').value });
+  try {
+    const res = await fetch('/api/run?' + q); const body = await res.json(); if (!res.ok) throw new Error(body.error);
+    data = body; series = build(data);
+    $('legReward').querySelector('.band')?.remove(); $('legRegret').querySelector('.band')?.remove();
+    if (data.scenario === 'switching') ['legReward', 'legRegret'].forEach(id => $(id).insertAdjacentHTML('beforeend', '<span class="band">shaded = downward regime</span>')); t = reduced ? series.n - 1 : 0; $('scrub').max = series.n; setPlaying(!reduced);
+    history.replaceState(null, '', '?' + q);
+    $('table').innerHTML = '<tr><th>policy</th><th>cumulative reward</th></tr>' +
+      [['hedge', data.cumulative_reward], ['uniform', data.uniform_reward], ...Object.entries(data.expert_rewards)].map(([k, v]) => `<tr><td>${k}</td><td>${v.toFixed(6)}</td></tr>`).join('') +
+      `<tr><td>regret (vs ${data.best_fixed_expert})</td><td>${data.regret.toFixed(6)}</td></tr><tr><td>analytical bound</td><td>${data.regret_upper_bound.toFixed(6)}</td></tr><tr><td>η</td><td>${data.eta.toFixed(6)}</td></tr>`;
+    $('hash').textContent = `input sha256 ${data.input_sha256.slice(0, 16)}… · seed ${data.seed} · ${data.rounds} rounds`;
+  } catch (e) { $('error').textContent = 'Run failed: ' + e.message; }
+}
+
+$('wBars').innerHTML = EXPERTS.map(e => `<div class="wrow" style="--c:var(--${e})"><span>${e}</span><div class="track"><div class="fill"></div></div><output>25.0%</output></div>`).join('');
+$('legReward').innerHTML = '<span style="--c:var(--hedge)">hedge</span><span class="dash" style="--c:var(--uniform)">uniform mixture</span>' + EXPERTS.map(e => `<span style="--c:var(--${e})">${e}</span>`).join('');
+$('legRegret').innerHTML = '<span style="--c:var(--hedge)">external regret</span><span class="dash" style="--c:var(--bound)">analytical bound 2B(ln K/η + ηt/8)</span>';
+tips('cReward', 'tipReward', i => [['hedge', fmt(series.hedge[i]), css('--hedge')], ['uniform', fmt(series.uniform[i]), css('--uniform')], ...EXPERTS.map((e, k) => [e, fmt(series.experts[k][i]), css('--' + e)])]);
+tips('cWeights', 'tipWeights', i => EXPERTS.map((e, k) => [e, (data.trace[i].weights[k] * 100).toFixed(1) + '%', css('--' + e)]));
+tips('cRegret', 'tipRegret', i => [['regret', series.regret[i].toFixed(4), css('--hedge')], ['bound', series.bound[i].toFixed(4), css('--bound')]]);
+$('form').addEventListener('submit', e => { e.preventDefault(); load(); });
+$('scenario').addEventListener('change', load);
+$('play').addEventListener('click', () => { if (series && t >= series.n - 1) t = 0; setPlaying(!playing); });
+$('scrub').addEventListener('input', e => { t = +e.target.value - 1; setPlaying(false); });
+addEventListener('keydown', e => { if (e.code === 'Space' && !/INPUT|SELECT|BUTTON/.test(e.target.tagName)) { e.preventDefault(); $('play').click(); } });
+const initial = new URLSearchParams(location.search);
+['scenario', 'seed', 'rounds'].forEach(k => initial.has(k) && ($(k).value = initial.get(k)));
+load(); requestAnimationFrame(tick);
+</script>
+</body>
+</html>
