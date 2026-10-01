@@ -25,5 +25,5 @@ jobs:
       - run: |
           HOST=127.0.0.1 PORT=8000 python -m regret_lab.web &
           for i in $(seq 1 15); do curl -fsS http://127.0.0.1:8000/health && break || sleep 1; done
-          curl -fsS http://127.0.0.1:8000/ | grep -q 'Watch Hedge learn'
+          curl -fsS http://127.0.0.1:8000/ | grep -q 'Evolve strategy DNA'
           curl -fsS 'http://127.0.0.1:8000/api/run?scenario=noise&rounds=200' | grep -q '"rounds": 200'
