@@ -4,24 +4,22 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Online Regret Lab</title>
-<meta name="description" content="Watch Hedge (exponential weights) learn which expert to trust, round by round, on synthetic reward sequences.">
+<meta name="description" content="Evolve trading-strategy DNA with a genetic algorithm, freeze the champions, then combine them online with Hedge and Fixed Share on a market they never saw.">
 <style>
 :root {
   color-scheme: dark;
   --bg: #111110; --surface: #1a1a19; --border: #2e2e2b; --grid: #2a2a27;
   --text: #f4f3ee; --text-2: #c3c2b7; --muted: #8b8a82;
-  --hedge: #3987e5; --cash: #d95926; --long: #199e70; --momentum: #c98500; --contrarian: #d55181;
-  --uniform: #8b8a82; --bound: #8b8a82;
-  --pos: #3987e5; --neg: #e66767; --band: rgba(255,255,255,.035);
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
+  --neutral: #8b8a82; --lo: #3987e5; --mid: #383835; --hi: #e66767; --band: rgba(255,255,255,.04);
 }
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dark"]) {
     color-scheme: light;
     --bg: #f4f3ee; --surface: #fcfcfb; --border: #dddcd5; --grid: #ebeae4;
     --text: #0b0b0b; --text-2: #52514e; --muted: #77766f;
-    --hedge: #2a78d6; --cash: #eb6834; --long: #1baf7a; --momentum: #eda100; --contrarian: #e87ba4;
-    --uniform: #8b8a82; --bound: #77766f;
-    --pos: #2a78d6; --neg: #e34948; --band: rgba(0,0,0,.035);
+    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7; --s8: #e34948;
+    --neutral: #8b8a82; --lo: #2a78d6; --mid: #f0efec; --hi: #e34948; --band: rgba(0,0,0,.04);
   }
 }
 * { box-sizing: border-box; }
@@ -31,274 +29,467 @@ header { display: flex; justify-content: space-between; align-items: baseline; g
 header a { color: var(--text); text-decoration: none; font-weight: 700; }
 header span, .muted { color: var(--muted); }
 h1 { font-size: clamp(20px, 3.4vw, 30px); line-height: 1.2; margin: 24px 0 6px; font-weight: 600; letter-spacing: -.01em; }
-.lede { color: var(--text-2); max-width: 780px; margin: 0 0 20px; }
-.controls { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: end; margin-bottom: 16px; }
+h2.step { font-size: 16px; margin: 32px 0 4px; font-weight: 600; }
+h2.step span { color: var(--muted); font-weight: 400; }
+.lede { color: var(--text-2); max-width: 820px; margin: 0 0 16px; }
+.tabs { display: flex; gap: 4px; margin: 20px 0 8px; border-bottom: 1px solid var(--border); }
+.tabs button { border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: none; color: var(--muted); padding: 8px 12px; }
+.tabs button[aria-selected=true] { color: var(--text); border-bottom-color: var(--s1); }
+.controls { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: end; margin: 12px 0; }
 .controls label { display: grid; gap: 4px; font-size: 12px; color: var(--muted); }
 select, input[type=number], button { font: inherit; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; }
 input[type=number] { width: 96px; }
 button { cursor: pointer; }
-button.primary { background: var(--hedge); border-color: var(--hedge); color: #fff; font-weight: 600; min-width: 92px; }
-button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--hedge); outline-offset: 2px; }
-.scrub { display: flex; align-items: center; gap: 12px; margin: 4px 0 16px; }
-.scrub input { flex: 1; accent-color: var(--hedge); }
-.scrub output { min-width: 120px; text-align: right; color: var(--text-2); font-variant-numeric: tabular-nums; }
-.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 16px; }
-.stat { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
+button.primary { background: var(--s1); border-color: var(--s1); color: #fff; font-weight: 600; min-width: 92px; }
+button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--s1); outline-offset: 2px; }
+.scrub { display: flex; align-items: center; gap: 12px; margin: 4px 0 14px; }
+.scrub input { flex: 1; accent-color: var(--s1); min-width: 0; }
+.scrub output { min-width: 150px; text-align: right; color: var(--text-2); font-variant-numeric: tabular-nums; }
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 12px; }
+.stat { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; min-width: 0; }
 .stat small { display: block; color: var(--muted); font-size: 12px; }
-.stat b { display: block; font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.stat b { display: block; font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .stat i { font-style: normal; color: var(--text-2); font-size: 12px; }
-.grid { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; }
+.grid { display: grid; grid-template-columns: 3fr 2fr; gap: 12px; }
 .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 12px 8px; position: relative; min-width: 0; }
-.panel h2 { font-size: 13px; font-weight: 600; margin: 0 0 2px; }
+.panel h3 { font-size: 13px; font-weight: 600; margin: 0 0 2px; }
 .panel p { margin: 0 0 6px; font-size: 12px; color: var(--muted); }
 .panel canvas { display: block; width: 100%; touch-action: none; }
 .wide { grid-column: 1 / -1; }
 .legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--text-2); margin-top: 6px; }
 .legend span::before { content: ''; display: inline-block; width: 12px; height: 3px; border-radius: 2px; background: var(--c); margin-right: 6px; vertical-align: middle; }
-.legend span.band::before { height: 10px; background: var(--band); outline: 1px solid var(--border); }
 .legend span.dash::before { background: repeating-linear-gradient(90deg, var(--c) 0 4px, transparent 4px 7px); }
-.weights { display: grid; gap: 10px; margin-top: 8px; }
-.wrow { display: grid; grid-template-columns: 88px 1fr 52px; align-items: center; gap: 8px; font-size: 12px; color: var(--text-2); }
-.wrow .track { height: 10px; background: var(--grid); border-radius: 4px; overflow: hidden; }
-.wrow .fill { height: 100%; width: 25%; background: var(--c); border-radius: 4px; }
-.wrow output { text-align: right; font-variant-numeric: tabular-nums; color: var(--text); }
+.legend span.band::before { height: 10px; background: var(--band); outline: 1px solid var(--border); }
+.legend span.ramp::before { width: 48px; height: 8px; background: linear-gradient(90deg, var(--lo), var(--mid), var(--hi)); }
 .tip { position: absolute; pointer-events: none; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font-size: 12px; white-space: nowrap; display: none; z-index: 2; box-shadow: 0 4px 16px rgba(0,0,0,.25); }
 .tip div { display: flex; justify-content: space-between; gap: 14px; }
 .tip i { font-style: normal; color: var(--muted); }
-.explain { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 20px; font-size: 13px; color: var(--text-2); }
-.explain b { color: var(--text); display: block; margin-bottom: 2px; }
-details { margin-top: 20px; }
-summary { cursor: pointer; color: var(--text-2); }
-table { border-collapse: collapse; margin-top: 8px; font-variant-numeric: tabular-nums; }
-td, th { padding: 4px 16px 4px 0; text-align: right; border-bottom: 1px solid var(--grid); }
+.cards { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px; min-width: 0; }
+.card b { display: flex; align-items: center; gap: 6px; }
+.card b::before { content: ''; width: 10px; height: 10px; border-radius: 3px; background: var(--c); }
+.card p { margin: 4px 0; font-size: 12px; color: var(--text-2); min-height: 54px; }
+.card canvas { width: 100%; height: 14px; display: block; border-radius: 3px; }
+.card small { color: var(--muted); font-size: 12px; display: block; margin-top: 6px; font-variant-numeric: tabular-nums; }
+.verdict { border-left: 3px solid var(--s1); padding: 8px 12px; background: var(--surface); border-radius: 0 8px 8px 0; color: var(--text-2); margin: 12px 0; }
+.verdict b { color: var(--text); }
+.wbars { display: grid; gap: 7px; margin-top: 6px; }
+.wrow { display: grid; grid-template-columns: 96px 1fr 52px 52px; align-items: center; gap: 8px; font-size: 12px; color: var(--text-2); }
+.wrow .track { height: 8px; background: var(--grid); border-radius: 4px; overflow: hidden; display: grid; }
+.wrow .fill { grid-area: 1 / 1; height: 100%; width: 0; background: var(--c); border-radius: 4px; }
+.wrow output { text-align: right; font-variant-numeric: tabular-nums; color: var(--text); }
+.whead { color: var(--muted); font-size: 11px; }
+table { border-collapse: collapse; margin-top: 8px; font-variant-numeric: tabular-nums; width: 100%; font-size: 13px; }
+td, th { padding: 4px 12px 4px 0; text-align: right; border-bottom: 1px solid var(--grid); white-space: nowrap; }
+th { color: var(--muted); font-weight: 400; }
 td:first-child, th:first-child { text-align: left; }
+.tablewrap { overflow-x: auto; }
+.explain { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 16px; font-size: 13px; color: var(--text-2); }
+.explain b { color: var(--text); display: block; margin-bottom: 2px; }
 footer { margin-top: 28px; padding-top: 12px; border-top: 1px solid var(--border); color: var(--muted); font-size: 12px; }
 footer a { color: var(--text-2); }
-.error { color: var(--neg); }
-@media (max-width: 760px) {
+.error { color: var(--s8); }
+[hidden] { display: none !important; }
+@media (max-width: 860px) {
   .grid, .explain { grid-template-columns: 1fr; }
   .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
-@media (prefers-reduced-motion: reduce) { .wrow .fill { transition: none; } }
 </style>
 </head>
 <body>
 <main>
-  <header><a href="https://github.com/suprkco/Trading-strategies-analysis-regret-minimization">regret / online learning lab</a><span>synthetic data · computed by the Python core</span></header>
-  <h1>Watch Hedge learn which expert to trust</h1>
-  <p class="lede">Four fixed experts bet on a synthetic return each round. Hedge spreads its weight across them <em>before</em> the return is revealed, then shrinks the weight of whoever lost. Regret is how far it ends up behind the single best expert chosen with hindsight.</p>
-
-  <form class="controls" id="form">
-    <label>Scenario<select id="scenario">
-      <option value="switching">switching regimes</option><option value="up">upward drift</option>
-      <option value="down">downward drift</option><option value="noise">pure noise</option></select></label>
-    <label>Seed<input id="seed" type="number" min="0" max="1000000" value="42"></label>
-    <label>Rounds<input id="rounds" type="number" min="10" max="2000" step="10" value="500"></label>
-    <label>Speed<select id="speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select></label>
-    <button type="submit">Run</button>
-    <button type="button" class="primary" id="play" aria-label="Pause">Pause</button>
-  </form>
-  <div class="scrub"><input id="scrub" type="range" min="1" max="500" value="1" aria-label="Round"><output id="roundOut">round 0 / 0</output></div>
-
-  <div class="stats" aria-live="polite">
-    <div class="stat"><small>Hedge cumulative reward</small><b id="sHedge">–</b><i id="sUniform">uniform –</i></div>
-    <div class="stat"><small>Best fixed expert so far</small><b id="sBest">–</b><i id="sBestVal">–</i></div>
-    <div class="stat"><small>External regret</small><b id="sRegret">–</b><i id="sBound">bound –</i></div>
-    <div class="stat"><small>This round's return</small><b id="sReturn">–</b><i id="sRegime">–</i></div>
+  <header><a href="https://github.com/suprkco/Trading-strategies-analysis-regret-minimization">regret / evolution lab</a><span>computed by the Python core · not investment advice</span></header>
+  <h1>Evolve strategy DNA, then let online learning decide whom to trust</h1>
+  <p class="lede">A genetic algorithm breeds 120 trading strategies, each encoded as 36 genes, on three US indices. The fittest survive, cross over and mutate for 60 generations. Champions are picked on a later validation window, frozen, then tested on a market they never saw, where Hedge and Fixed Share combine them day by day.</p>
+  <div class="tabs" role="tablist">
+    <button role="tab" id="tabG" aria-selected="true" aria-controls="viewG">Genetic evolution · real indices</button>
+    <button role="tab" id="tabS" aria-selected="false" aria-controls="viewS">Regret lab · synthetic regimes</button>
   </div>
 
-  <div class="grid">
-    <section class="panel"><h2>Cumulative reward</h2><p>Additive score per policy, not a compounded investment return.</p>
-      <canvas id="cReward" height="300" aria-label="Cumulative reward of Hedge, uniform mixture and four experts"></canvas>
-      <div class="legend" id="legReward"></div><div class="tip" id="tipReward"></div></section>
-    <section class="panel"><h2>Hedge weights now</h2><p>Probability on each expert at the current round.</p>
-      <div class="weights" id="wBars"></div>
-      <canvas id="cWeights" height="230" aria-label="Hedge weight share per expert over time" style="margin-top:14px"></canvas>
-      <div class="tip" id="tipWeights"></div></section>
-    <section class="panel wide"><h2>Regret vs analytical bound</h2><p>Best fixed expert's reward minus Hedge's. The guarantee says it stays under the dashed line.</p>
-      <canvas id="cRegret" height="170" aria-label="External regret and its analytical upper bound"></canvas>
-      <div class="legend" id="legRegret"></div><div class="tip" id="tipRegret"></div></section>
-  </div>
+  <section id="viewG" role="tabpanel" aria-labelledby="tabG">
+    <h2 class="step">1 · Evolution <span id="trainLabel">training on NASDAQ Composite, S&amp;P 500, Dow Jones</span></h2>
+    <div class="controls">
+      <button type="button" class="primary" id="gPlay">Pause</button>
+      <label>Speed<select id="gSpeed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option></select></label>
+    </div>
+    <div class="scrub"><input id="gScrub" type="range" min="0" max="59" value="0" aria-label="Generation"><output id="gOut">generation 0</output></div>
+    <div class="stats">
+      <div class="stat"><small>Best training Sharpe</small><b id="gBest">–</b><i id="gMedian">median –</i></div>
+      <div class="stat"><small>Same genome on validation</small><b id="gVal">–</b><i>2022-2023, unseen during breeding</i></div>
+      <div class="stat"><small>Best validation in population</small><b id="gBestVal">–</b><i id="gBestValRank">–</i></div>
+      <div class="stat"><small>Gene diversity</small><b id="gDiv">–</b><i>mean std of genes across players</i></div>
+    </div>
+    <div class="grid">
+      <section class="panel"><h3>Fitness across generations</h3><p>Annualised Sharpe after 5 bp costs. The gap between the lines is overfitting.</p>
+        <canvas id="cFit" data-h="280" aria-label="Best and median training Sharpe and best genome's validation Sharpe per generation"></canvas>
+        <div class="legend"><span style="--c:var(--s1)">best training</span><span class="dash" style="--c:var(--s1)">median training</span><span style="--c:var(--s2)">best-trained genome on validation</span><span style="--c:var(--s3)">best validation in population</span></div>
+        <div class="tip" id="tipFit"></div></section>
+      <section class="panel"><h3>Population DNA</h3><p>120 players (rows, fittest on top) × 36 genes. Watch stripes form as selection wins.</p>
+        <canvas id="cDna" data-h="300" aria-label="Heatmap of every player's genes for the current generation"></canvas>
+        <div class="legend"><span class="ramp">gene value 0 → 1</span></div>
+        <div class="tip" id="tipDna"></div></section>
+    </div>
+
+    <h2 class="step">2 · Frozen champions <span>top 5 by validation Sharpe in the final generation</span></h2>
+    <div class="cards" id="cards"></div>
+
+    <h2 class="step">3 · Final test <span id="testLabel">on a market never seen</span></h2>
+    <p class="error" id="testError" role="alert"></p>
+    <div id="testBody">
+      <div class="controls">
+        <button type="button" class="primary" id="tPlay">Pause</button>
+        <label>Speed<select id="tSpeed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select></label>
+      </div>
+      <div class="scrub"><input id="tScrub" type="range" min="1" max="2" value="1" aria-label="Trading day"><output id="tOut">–</output></div>
+      <div class="grid">
+        <section class="panel wide"><h3 id="priceTitle">Test index</h3><p>Daily close from FRED. The strategies only ever see closes up to the previous day.</p>
+          <canvas id="cPrice" data-h="200" aria-label="Test index daily close"></canvas><div class="tip" id="tipPrice"></div></section>
+        <section class="panel"><h3>Growth of 100</h3><p>Compounded net daily returns, same scale as the index's buy &amp; hold.</p>
+          <canvas id="cEquity" data-h="300" aria-label="Equity of each champion, buy and hold, cash, Hedge and Fixed Share"></canvas>
+          <div class="legend" id="legEquity"></div><div class="tip" id="tipEquity"></div></section>
+        <section class="panel"><h3>Who the learners trust today</h3><p>Weight on each expert. Updated after every close.</p>
+          <div class="wbars" id="tBars"></div></section>
+      </div>
+      <div class="verdict" id="verdict"></div>
+      <div class="panel"><h3>Out-of-sample scorecard</h3><div class="tablewrap"><table id="scoreTable"></table></div><p id="testNote" style="margin-top:8px"></p></div>
+    </div>
+  </section>
+
+  <section id="viewS" role="tabpanel" aria-labelledby="tabS" hidden>
+    <p class="lede" style="margin-top:12px">Five rule experts (cash, long, short, one-day momentum, one-day reversal) on a synthetic market whose regime changes at random. Hedge competes with the best <em>fixed</em> expert; Fixed Share keeps a little weight on everyone so it can follow a <em>changing</em> best.</p>
+    <form class="controls" id="sForm">
+      <label>Scenario<select id="sScenario"><option value="regimes">random regimes</option><option value="switching">alternating drift</option><option value="up">upward drift</option><option value="down">downward drift</option><option value="noise">pure noise</option></select></label>
+      <label>Seed<input id="sSeed" type="number" min="0" max="1000000" value="42"></label>
+      <label>Rounds<input id="sRounds" type="number" min="10" max="2000" step="10" value="500"></label>
+      <label>Speed<select id="sSpeed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select></label>
+      <button type="submit">Run</button><button type="button" id="sRandom">New seed</button>
+      <button type="button" class="primary" id="sPlay">Pause</button>
+    </form>
+    <div class="scrub"><input id="sScrub" type="range" min="1" max="500" value="1" aria-label="Round"><output id="sOut">round 0 / 0</output></div>
+    <div class="stats">
+      <div class="stat"><small>Hedge</small><b id="sHedge">–</b><i id="sHedgeR">–</i></div>
+      <div class="stat"><small>Fixed Share</small><b id="sShare">–</b><i id="sShareR">–</i></div>
+      <div class="stat"><small>Best fixed expert so far</small><b id="sBest">–</b><i id="sBestVal">–</i></div>
+      <div class="stat"><small>Current regime</small><b id="sRegime">–</b><i id="sReturn">–</i></div>
+    </div>
+    <div class="grid">
+      <section class="panel"><h3>Cumulative reward</h3><p>Additive score; the dashed line switches to each regime's best expert with hindsight.</p>
+        <canvas id="cReward" data-h="300" aria-label="Cumulative reward of experts, Hedge, Fixed Share and the regime oracle"></canvas>
+        <div class="legend" id="legReward"></div><div class="tip" id="tipReward"></div></section>
+      <section class="panel"><h3>Weights over time</h3><p>Top: Hedge. Bottom: Fixed Share. Shading marks regimes.</p>
+        <canvas id="cWeights" data-h="300" aria-label="Weight share per expert over time for Hedge and Fixed Share"></canvas>
+        <div class="tip" id="tipWeights"></div></section>
+      <section class="panel wide"><h3>Regret against the best fixed expert</h3><p>Negative means the learner beat every fixed expert. The dashed line is Hedge's guarantee.</p>
+        <canvas id="cRegret" data-h="170" aria-label="Regret of Hedge and Fixed Share and Hedge's analytical bound"></canvas>
+        <div class="legend"><span style="--c:var(--s1)">Hedge regret</span><span style="--c:var(--s7)">Fixed Share regret</span><span class="dash" style="--c:var(--neutral)">Hedge bound 2B(ln K/η + ηt/8)</span></div>
+        <div class="tip" id="tipRegret"></div></section>
+    </div>
+    <p class="error" id="sError" role="alert"></p>
+  </section>
 
   <div class="explain">
-    <div><b>Causal order</b>Weights and exposures are fixed, then the return is revealed, scored, and losses update. No expert sees the future.</div>
-    <div><b>Exponential weights</b>Each expert's weight is proportional to exp(−η · cumulative loss), with η chosen from the horizon only.</div>
-    <div><b>What to look for</b>In switching regimes, weight drifts to momentum after each turn; regret flattens instead of growing linearly.</div>
+    <div><b>No look-ahead</b>Every signal at day t uses closes up to t−1; costs are charged on every change of exposure. The test index is never loaded while breeding.</div>
+    <div><b>Selection, not tuning</b>Genes are weights over eight signals in calm and stressed regimes, look-back periods, bias, gain, dead zone, shorting, volatility target, smoothing, stop-loss and cooldown.</div>
+    <div><b>Why combine online</b>Champions that looked best in the past can fail. Hedge's regret against the best of them grows sublinearly, whichever one that turns out to be.</div>
   </div>
-
-  <details><summary>Final totals as a table</summary><table id="table"></table><p class="muted" id="hash"></p></details>
-  <p class="error" id="error" role="alert"></p>
-  <footer>Synthetic, bounded rewards. No market data, costs, slippage or order execution; not investment evidence. The animation replays the trace returned by <code>regret_lab.core.evaluate</code> (<a href="/api/run">raw JSON</a>). <a href="https://github.com/suprkco/Trading-strategies-analysis-regret-minimization">Code, method and evaluation ↗</a></footer>
+  <footer>Index data: Federal Reserve Bank of St. Louis (FRED), fetched at runtime and not redistributed; copyrights belong to the index providers. Past and simulated results are not investment advice. <a href="/api/evolution">evolution JSON</a> · <a href="/api/test">test JSON</a> · <a href="https://github.com/suprkco/Trading-strategies-analysis-regret-minimization">Code, method and evaluation ↗</a></footer>
 </main>
 <script>
-const EXPERTS = ['cash', 'long', 'momentum', 'contrarian'];
 const $ = id => document.getElementById(id);
 const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-const fmt = (v, d = 4) => (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(d);
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-let data = null, series = null, t = 0, playing = !reduced, last = 0, hover = null;
+const pct = (v, d = 1) => (v >= 0 ? '+' : '−') + Math.abs(v * 100).toFixed(d) + '%';
+const sgn = (v, d = 2) => (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(d);
+const FONT = '11px ui-monospace, monospace';
 
-function build(d) {
-  const n = d.trace.length, totals = EXPERTS.map(() => 0), experts = EXPERTS.map(() => []);
-  const hedge = [], uniform = [], regret = [], bound = [], best = [];
-  let u = 0;
-  const lnK = Math.log(EXPERTS.length);
-  d.trace.forEach((r, i) => {
-    r.expert_rewards.forEach((g, k) => { totals[k] += g; experts[k].push(totals[k]); });
-    u += r.expert_rewards.reduce((a, b) => a + b, 0) / EXPERTS.length;
-    hedge.push(r.cumulative_reward); uniform.push(u); regret.push(r.regret);
-    bound.push(2 * d.reward_bound * (lnK / d.eta + d.eta * (i + 1) / 8));
-    best.push(totals.indexOf(Math.max(...totals)));
-  });
-  return { n, hedge, uniform, experts, regret, bound, best };
-}
-
-function regimeOf(i) {
-  if (data.scenario !== 'switching') return { up: 'drift +0.004', down: 'drift −0.004', noise: 'no drift' }[data.scenario];
-  return Math.floor(i / 50) % 2 === 0 ? 'regime: drift +0.006' : 'regime: drift −0.006';
-}
-
+// ---------- canvas helpers ----------
 function setup(canvas) {
-  const ratio = devicePixelRatio || 1, w = canvas.clientWidth, h = +canvas.getAttribute('height');
-  if (canvas.width !== Math.round(w * ratio)) { canvas.width = Math.round(w * ratio); canvas.height = Math.round(h * ratio); canvas.style.height = h + 'px'; }
+  const ratio = devicePixelRatio || 1, w = canvas.clientWidth, h = +canvas.dataset.h;
+  if (canvas.width !== Math.round(w * ratio) || canvas.height !== Math.round(h * ratio)) {
+    canvas.width = Math.round(w * ratio); canvas.height = Math.round(h * ratio); canvas.style.height = h + 'px';
+  }
   const ctx = canvas.getContext('2d'); ctx.setTransform(ratio, 0, 0, ratio, 0, 0); ctx.clearRect(0, 0, w, h);
   return { ctx, w, h };
 }
-
-function frame(canvas, lists, pad = { l: 52, r: 86, t: 8, b: 22 }) {
+function nice(lo, hi, ticks = 4) {
+  if (lo === hi) { lo -= 1; hi += 1; }
+  const raw = (hi - lo) / ticks, mag = 10 ** Math.floor(Math.log10(raw));
+  const step = [1, 2, 2.5, 5, 10].map(m => m * mag).find(s => s >= raw);
+  return { lo: Math.floor(lo / step) * step, hi: Math.ceil(hi / step) * step, step };
+}
+function frame(canvas, n, lists, opt = {}) {
+  const pad = { l: 52, r: opt.r ?? 90, t: 8, b: 22 };
   const { ctx, w, h } = setup(canvas);
   let lo = Infinity, hi = -Infinity;
-  lists.forEach(a => a.forEach(v => { lo = Math.min(lo, v); hi = Math.max(hi, v); }));
-  lo = Math.min(lo, 0); hi = Math.max(hi, 0);
-  const raw = ((hi - lo) || 1) / 4, mag = 10 ** Math.floor(Math.log10(raw)), step = [1, 2, 2.5, 5, 10].map(m => m * mag).find(s => s >= raw);
-  lo = Math.floor(lo / step) * step; hi = Math.ceil(hi / step) * step;
-  const x = i => pad.l + (w - pad.l - pad.r) * (series.n === 1 ? 0 : i / (series.n - 1));
-  const y = v => pad.t + (h - pad.t - pad.b) * (1 - (v - lo) / (hi - lo));
-  if (data.scenario === 'switching') {
-    ctx.fillStyle = css('--band');
-    for (let s = 50; s < series.n; s += 100) ctx.fillRect(x(s), pad.t, x(Math.min(s + 50, series.n - 1)) - x(s), h - pad.t - pad.b);
-  }
-  ctx.font = '11px ui-monospace, monospace'; ctx.fillStyle = css('--muted'); ctx.strokeStyle = css('--grid'); ctx.lineWidth = 1;
-  for (let v = lo; v <= hi + step / 2; v += step) {
-    const yy = Math.round(y(v)) + .5;
-    ctx.beginPath(); ctx.moveTo(pad.l, yy); ctx.lineTo(w - pad.r, yy); ctx.stroke();
-    ctx.textAlign = 'right'; ctx.fillText(Math.abs(v) < step / 2 ? '0' : v.toFixed(step < .1 ? 2 : 1), pad.l - 6, yy + 4);
+  lists.forEach(a => a.forEach(v => { if (Number.isFinite(v)) { lo = Math.min(lo, v); hi = Math.max(hi, v); } }));
+  if (opt.zero !== false) { lo = Math.min(lo, 0); hi = Math.max(hi, 0); }
+  const s = nice(lo, hi);
+  const x = i => pad.l + (w - pad.l - pad.r) * (n <= 1 ? 0 : i / (n - 1));
+  const y = v => pad.t + (h - pad.t - pad.b) * (1 - (v - s.lo) / (s.hi - s.lo));
+  (opt.bands || []).forEach(([a, b]) => { ctx.fillStyle = css('--band'); ctx.fillRect(x(a), pad.t, x(Math.min(b, n - 1)) - x(a), h - pad.t - pad.b); });
+  ctx.font = FONT; ctx.fillStyle = css('--muted'); ctx.strokeStyle = css('--grid'); ctx.lineWidth = 1;
+  for (let v = s.lo; v <= s.hi + s.step / 2; v += s.step) {
+    const yy = Math.round(y(v)) + .5; ctx.beginPath(); ctx.moveTo(pad.l, yy); ctx.lineTo(w - pad.r, yy); ctx.stroke();
+    const digits = s.step >= 1 ? 0 : Math.min(3, (String(+s.step.toPrecision(3)).split('.')[1] || '').length);
+    ctx.textAlign = 'right'; ctx.fillText(opt.fmtY ? opt.fmtY(v, s.step) : (Math.abs(v) < s.step / 2 ? '0' : v.toFixed(digits)), pad.l - 6, yy + 4);
   }
   ctx.textAlign = 'center';
-  [0, .5, 1].forEach(f => { const i = Math.round(f * (series.n - 1)); ctx.fillText(i + 1, x(i), h - 6); });
-  return { ctx, w, h, x, y, pad };
+  let xt = opt.xTicks || [0, Math.floor((n - 1) / 2), n - 1].map(i => [i, String(i + 1)]);
+  if (w < 520) xt = [xt[0], xt[xt.length - 1]];  // narrow screens: first and last only
+  xt.forEach(([i, label], k, all) => {
+    ctx.textAlign = k === 0 ? 'left' : k === all.length - 1 ? 'right' : 'center'; ctx.fillText(label, x(i), h - 6);
+  });
+  return { ctx, w, h, x, y, pad, n };
 }
-
-function line(f, values, upto, color, width = 2, dash = []) {
-  const { ctx, x, y } = f; ctx.save(); ctx.strokeStyle = color; ctx.lineWidth = width; ctx.setLineDash(dash); ctx.lineJoin = 'round';
-  ctx.beginPath(); for (let i = 0; i <= upto; i++) i ? ctx.lineTo(x(i), y(values[i])) : ctx.moveTo(x(i), y(values[i])); ctx.stroke(); ctx.restore();
+function line(f, values, upto, color, width = 2, dash = [], alpha = 1) {
+  const { ctx, x, y } = f; ctx.save(); ctx.globalAlpha = alpha; ctx.strokeStyle = color; ctx.lineWidth = width; ctx.setLineDash(dash); ctx.lineJoin = 'round';
+  ctx.beginPath(); let started = false;
+  for (let i = 0; i <= upto && i < values.length; i++) { if (!Number.isFinite(values[i])) continue; started ? ctx.lineTo(x(i), y(values[i])) : ctx.moveTo(x(i), y(values[i])); started = true; }
+  ctx.stroke(); ctx.restore();
 }
-
 function endLabels(f, items, upto) {
-  const { ctx, x, y, w, h } = f; const placed = [];
-  items.map(it => ({ ...it, yy: y(it.values[upto]) })).sort((a, b) => a.yy - b.yy).forEach(it => {
-    let yy = Math.max(10, Math.min(h - 26, it.yy)); while (placed.some(p => Math.abs(p - yy) < 13)) yy += 13; placed.push(yy);
-    ctx.fillStyle = it.color; ctx.beginPath(); ctx.arc(x(upto), it.yy, it.bold ? 4.5 : 3.5, 0, 7); ctx.fill();
-    ctx.strokeStyle = css('--surface'); ctx.lineWidth = 2; ctx.stroke();
-    ctx.fillStyle = it.bold ? css('--text') : css('--text-2'); ctx.font = (it.bold ? '600 ' : '') + '11px ui-monospace, monospace'; ctx.textAlign = 'left';
-    ctx.fillText(it.name, Math.min(x(upto) + 8, w - 80), yy + 4);
+  const { ctx, x, y, w, h, pad } = f; const placed = [];
+  items.map(it => ({ ...it, yy: y(it.values[Math.min(upto, it.values.length - 1)]) })).sort((a, b) => a.yy - b.yy).forEach(it => {
+    let yy = Math.max(pad.t + 6, Math.min(h - pad.b - 4, it.yy));
+    while (placed.some(p => Math.abs(p - yy) < 12)) yy += 12;
+    if (yy > h - pad.b) return; placed.push(yy);
+    const xx = x(Math.min(upto, it.values.length - 1));
+    ctx.fillStyle = it.color; ctx.beginPath(); ctx.arc(xx, it.yy, it.bold ? 4.5 : 3.5, 0, 7); ctx.fill(); ctx.strokeStyle = css('--surface'); ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = it.bold ? css('--text') : css('--text-2'); ctx.font = (it.bold ? '600 ' : '') + FONT; ctx.textAlign = 'left';
+    ctx.fillText(it.name, Math.min(xx + 8, w - pad.r + 8), yy + 4);
   });
 }
-
 function crosshair(f, i) {
-  if (i == null) return; const { ctx, x, h, pad } = f;
-  ctx.save(); ctx.strokeStyle = css('--muted'); ctx.setLineDash([2, 3]); ctx.beginPath(); ctx.moveTo(Math.round(x(i)) + .5, pad.t); ctx.lineTo(Math.round(x(i)) + .5, h - pad.b); ctx.stroke(); ctx.restore();
+  if (i == null) return; const { ctx, x, h, pad } = f, xx = Math.round(x(i)) + .5;
+  ctx.save(); ctx.strokeStyle = css('--muted'); ctx.setLineDash([2, 3]); ctx.beginPath(); ctx.moveTo(xx, pad.t); ctx.lineTo(xx, h - pad.b); ctx.stroke(); ctx.restore();
+}
+function mix(a, b, t) {
+  const p = c => [1, 3, 5].map(i => parseInt(c.slice(i, i + 2), 16)), A = p(a), B = p(b);
+  return `rgb(${A.map((v, i) => Math.round(v + (B[i] - v) * t)).join(',')})`;
+}
+function diverging(v) { return v < .5 ? mix(css('--lo'), css('--mid'), v * 2) : mix(css('--mid'), css('--hi'), (v - .5) * 2); }
+function hoverable(canvasId, tipId, state, rows, pad = { l: 52, r: 90 }) {
+  const canvas = $(canvasId), tip = $(tipId);
+  const leave = () => { state.hover = null; tip.style.display = 'none'; };
+  canvas.addEventListener('pointermove', e => {
+    if (!state.n) return; const rect = canvas.getBoundingClientRect();
+    const f = (e.clientX - rect.left - pad.l) / (rect.width - pad.l - pad.r);
+    if (f < 0 || f > 1) return leave();
+    state.hover = Math.min(Math.floor(state.t), Math.round(f * (state.n - 1)));
+    const [title, sub, list] = rows(state.hover);
+    tip.innerHTML = `<div><b>${title}</b><i>${sub}</i></div>` + list.map(([k, v, c]) => `<div><span><span style="color:${c}">■</span> ${k}</span><span>${v}</span></div>`).join('');
+    tip.style.display = 'block'; const px = e.clientX - rect.left + canvas.offsetLeft;
+    tip.style.left = Math.max(4, Math.min(px + 14, canvas.offsetLeft + rect.width - tip.offsetWidth)) + 'px'; tip.style.top = (canvas.offsetTop + 8) + 'px';
+  });
+  canvas.addEventListener('pointerleave', leave);
+}
+function player(state, playBtn, scrub, speedSel, rate) {
+  state.playing = !reduced;
+  const set = on => { state.playing = on; playBtn.textContent = on ? 'Pause' : (state.n && state.t >= state.n - 1 ? 'Replay' : 'Play'); };
+  playBtn.addEventListener('click', () => { if (state.n && state.t >= state.n - 1) state.t = 0; set(!state.playing); });
+  scrub.addEventListener('input', e => { state.t = +e.target.value - +scrub.min; set(false); });
+  state.set = set;
+  state.advance = dt => {
+    if (state.playing && state.n && state.t < state.n - 1) { state.t = Math.min(state.n - 1, state.t + dt * rate(state) * +speedSel.value); if (state.t >= state.n - 1) set(false); }
+  };
 }
 
-function draw() {
-  if (!series) return;
-  const upto = Math.min(series.n - 1, Math.floor(t)), at = hover ?? upto, colors = EXPERTS.map(e => css('--' + e));
-  const fr = frame($('cReward'), [series.hedge, series.uniform, ...series.experts]);
-  series.experts.forEach((v, k) => line(fr, v, upto, colors[k], 1.5));
-  line(fr, series.uniform, upto, css('--uniform'), 1.5, [4, 3]);
-  line(fr, series.hedge, upto, css('--hedge'), 3);
-  endLabels(fr, [...EXPERTS.map((e, k) => ({ name: e, values: series.experts[k], color: colors[k] })),
-    { name: 'uniform', values: series.uniform, color: css('--uniform') }, { name: 'hedge', values: series.hedge, color: css('--hedge'), bold: true }], upto);
-  crosshair(fr, hover != null && hover <= upto ? hover : null);
+// ---------- tab 1: genetic evolution ----------
+const G = { t: 0, n: 0, hover: null }, T = { t: 0, n: 0, hover: null };
+let evo = null, test = null, champColors = [];
+const GROUPS = [['calm weights', 8], ['stress weights', 8], ['periods', 7], ['risk & execution', 10]];
 
-  const wc = setup($('cWeights')), pad = 4, W = wc.w - 2 * pad, H = wc.h - 18;
-  for (let i = 0; i <= upto; i++) {
-    let acc = 0; const xx = pad + W * i / Math.max(1, series.n - 1), bw = Math.max(1, W / series.n + .5);
-    data.trace[i].weights.forEach((w, k) => { wc.ctx.fillStyle = colors[k]; wc.ctx.fillRect(xx, 4 + H * acc, bw, Math.max(0, H * w - (k < 3 ? 1 : 0))); acc += w; });
-  }
-  wc.ctx.fillStyle = css('--muted'); wc.ctx.font = '11px ui-monospace, monospace'; wc.ctx.textAlign = 'left'; wc.ctx.fillText('weight share over time →', pad, wc.h - 3);
-  if (hover != null && hover <= upto) { const xx = Math.round(pad + W * hover / Math.max(1, series.n - 1)) + .5; wc.ctx.strokeStyle = css('--text'); wc.ctx.beginPath(); wc.ctx.moveTo(xx, 4); wc.ctx.lineTo(xx, 4 + H); wc.ctx.stroke(); }
+function drawEvolution() {
+  if (!evo) return;
+  const g = Math.min(G.n - 1, Math.floor(G.t)), h = evo.history, at = G.hover ?? g;
+  const best = h.map(r => r.train[0]), median = h.map(r => r.train[r.train.length >> 1]);
+  const bestVal = h.map(r => r.validation[0]), popVal = h.map(r => Math.max(...r.validation));
+  const f = frame($('cFit'), G.n, [best, median, bestVal, popVal], { r: 110, xTicks: [[0, 'gen 0'], [G.n >> 1, 'gen ' + (G.n >> 1)], [G.n - 1, 'gen ' + (G.n - 1)]] });
+  line(f, median, g, css('--s1'), 1.5, [4, 3]); line(f, popVal, g, css('--s3'), 1.5); line(f, bestVal, g, css('--s2'), 2); line(f, best, g, css('--s1'), 3);
+  endLabels(f, [{ name: 'train ' + best[g].toFixed(2), values: best, color: css('--s1'), bold: true }, { name: 'valid ' + bestVal[g].toFixed(2), values: bestVal, color: css('--s2') }, { name: 'best valid ' + popVal[g].toFixed(2), values: popVal, color: css('--s3') }], g);
+  crosshair(f, G.hover);
 
-  const fg = frame($('cRegret'), [series.regret, series.bound]);
-  line(fg, series.bound, series.n - 1, css('--bound'), 1.5, [5, 4]);
-  line(fg, series.regret, upto, css('--hedge'), 2.5);
-  endLabels(fg, [{ name: 'regret', values: series.regret, color: css('--hedge'), bold: true }], upto);
-  crosshair(fg, hover != null && hover <= upto ? hover : null);
+  const { ctx, w, h: H } = setup($('cDna')), top = 16, rows = h[at].dna.length, genes = evo.genes.length;
+  const cw = w / genes, rh = (H - top) / rows;
+  h[at].dna.forEach((dna, r) => dna.forEach((v, c) => { ctx.fillStyle = diverging(v / 99); ctx.fillRect(c * cw, top + r * rh, Math.ceil(cw), Math.ceil(rh)); }));
+  let c0 = 0; ctx.font = FONT; ctx.textAlign = 'left';
+  GROUPS.forEach(([name, size], k) => {
+    ctx.fillStyle = css('--muted'); ctx.fillText(w > 420 || k % 2 === 0 ? name : '', c0 * cw + 2, 11);
+    if (c0) { ctx.fillStyle = css('--surface'); ctx.fillRect(c0 * cw - 1, top, 2, H - top); }
+    c0 += size;
+  });
 
-  const r = data.trace[Math.min(at, upto)], i = Math.min(at, upto);
-  r.weights.forEach((w, k) => { const row = $('wBars').children[k]; row.querySelector('.fill').style.width = (w * 100).toFixed(1) + '%'; row.querySelector('output').textContent = (w * 100).toFixed(1) + '%'; });
-  $('sHedge').textContent = fmt(series.hedge[i]); $('sUniform').textContent = 'uniform ' + fmt(series.uniform[i]);
-  $('sBest').textContent = EXPERTS[series.best[i]]; $('sBestVal').textContent = fmt(series.experts[series.best[i]][i]);
-  $('sRegret').textContent = series.regret[i].toFixed(4); $('sBound').textContent = 'bound ' + series.bound[i].toFixed(4);
-  $('sReturn').innerHTML = `<span style="color:${r.return >= 0 ? css('--pos') : css('--neg')}">${r.return >= 0 ? '▲' : '▼'}</span> ${fmt(r.return * 100, 2)}%`; $('sRegime').textContent = regimeOf(i);
-  $('roundOut').textContent = `round ${i + 1} / ${series.n}`; if (hover == null) $('scrub').value = upto + 1;
+  const r = h[at];
+  $('gBest').textContent = r.train[0].toFixed(2); $('gMedian').textContent = 'median ' + r.train[r.train.length >> 1].toFixed(2);
+  $('gVal').textContent = r.validation[0].toFixed(2);
+  const vi = r.validation.indexOf(Math.max(...r.validation));
+  $('gBestVal').textContent = r.validation[vi].toFixed(2); $('gBestValRank').textContent = `training rank ${vi + 1} of ${r.train.length}`;
+  $('gDiv').textContent = r.diversity.toFixed(3);
+  $('gOut').textContent = `generation ${at} / ${G.n - 1}`; if (G.hover == null) $('gScrub').value = g;
 }
 
+function dnaStrip(canvas, dna) {
+  const ratio = devicePixelRatio || 1, w = canvas.clientWidth || 160, h = 14;
+  canvas.width = w * ratio; canvas.height = h * ratio; const ctx = canvas.getContext('2d'); ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+  dna.forEach((v, i) => { ctx.fillStyle = diverging(v); ctx.fillRect(i * w / dna.length, 0, Math.ceil(w / dna.length), h); });
+}
+
+function buildCards() {
+  champColors = ['--s2', '--s3', '--s4', '--s5', '--s6'];
+  $('cards').innerHTML = evo.champions.map((c, i) => `<div class="card" style="--c:var(${champColors[i]})"><b>${c.id}</b><p>${c.traits}</p><canvas aria-label="DNA of ${c.id}"></canvas><small>Sharpe train ${c.train_sharpe.toFixed(2)} → valid ${c.validation_sharpe.toFixed(2)}</small></div>`).join('');
+  [...$('cards').querySelectorAll('canvas')].forEach((cv, i) => dnaStrip(cv, evo.champions[i].dna));
+}
+
+function equity(daily) { let e = 100; return daily.map(r => (e *= 1 + r)); }
+function testSeries() {
+  const experts = test.experts.map((e, i) => ({ name: e.name, eq: equity(e.daily), color: i < 5 ? css(champColors[i]) : e.name === 'cash' ? css('--neutral') : css('--s8'), w: e.name === 'buy & hold' ? 2.5 : 1.5, alpha: i < 5 ? .85 : 1, dash: e.name === 'cash' ? [4, 3] : [] }));
+  const learners = [['Hedge', test.learners.hedge, css('--s1')], ['Fixed Share', test.learners.fixed_share, css('--s7')]].map(([name, l, color]) => ({ name, eq: equity(l.daily), color, w: 3, alpha: 1, dash: [], l }));
+  return { experts, learners };
+}
+let TS = null;
+function drawTest() {
+  if (!test) return;
+  const i = Math.min(T.n - 1, Math.floor(T.t)), at = T.hover ?? i, d = test.dates;
+  const ticks = [0, Math.floor((T.n - 1) / 2), T.n - 1].map(k => [k, d[k]]);
+  const fp = frame($('cPrice'), T.n, [test.closes], { zero: false, xTicks: ticks, fmtY: v => Math.round(v).toLocaleString('en-US') , r: 90 });
+  line(fp, test.closes, i, css('--text-2'), 2); endLabels(fp, [{ name: Math.round(test.closes[i]).toLocaleString('en-US'), values: test.closes, color: css('--text-2'), bold: true }], i); crosshair(fp, T.hover);
+  const all = [...TS.experts, ...TS.learners];
+  const fe = frame($('cEquity'), T.n, all.map(s => s.eq), { zero: false, xTicks: ticks, r: 96 });
+  ctx_baseline(fe);
+  TS.experts.forEach(s => line(fe, s.eq, i, s.color, s.w, s.dash, s.alpha)); TS.learners.forEach(s => line(fe, s.eq, i, s.color, s.w));
+  endLabels(fe, all.map(s => ({ name: s.name, values: s.eq, color: s.color, bold: s.w === 3 })), i); crosshair(fe, T.hover);
+  test.experts.forEach((e, k) => {
+    const row = $('tBars').children[k + 1];
+    [test.learners.hedge, test.learners.fixed_share].forEach((l, j) => { const w = l.weights[Math.min(at, i)][k]; row.querySelectorAll('.fill')[j].style.width = (w * 100).toFixed(1) + '%'; row.querySelectorAll('output')[j].textContent = (w * 100).toFixed(0) + '%'; });
+  });
+  $('tOut').textContent = `${d[Math.min(at, i)]} · day ${Math.min(at, i) + 1} / ${T.n}`; if (T.hover == null) $('tScrub').value = i + 1;
+}
+function ctx_baseline(f) { const { ctx, x, y, pad, w } = f, yy = Math.round(y(100)) + .5; ctx.save(); ctx.strokeStyle = css('--muted'); ctx.beginPath(); ctx.moveTo(pad.l, yy); ctx.lineTo(w - pad.r, yy); ctx.stroke(); ctx.restore(); }
+
+function buildTest() {
+  T.n = test.dates.length; $('tScrub').max = T.n; T.t = reduced ? T.n - 1 : 0; T.set(false);
+  // Start the test replay when it scrolls into view, so it is not over before anyone looks.
+  if (!reduced) new IntersectionObserver((entries, o) => { if (entries[0].isIntersecting) { T.set(true); o.disconnect(); } }, { threshold: .3 }).observe($('cEquity'));
+  TS = testSeries();
+  $('testLabel').textContent = `on ${test.title}, ${test.dates[0]} → ${test.dates[T.n - 1]} (never seen while breeding)`;
+  $('priceTitle').textContent = `${test.title} · the market the final simulation is validated on`;
+  $('legEquity').innerHTML = [...TS.learners, ...TS.experts].map(s => `<span class="${s.dash.length ? 'dash' : ''}" style="--c:${s.color}">${s.name}</span>`).join('');
+  $('tBars').innerHTML = '<div class="wrow whead"><span>expert</span><span>Hedge ■ / Fixed Share ■</span><span>Hedge</span><span>F.Share</span></div>' +
+    test.experts.map((e, k) => `<div class="wrow"><span>${e.name}</span><div class="track"><div class="fill" style="--c:var(--s1)"></div><div class="fill" style="--c:var(--s7);opacity:.6;height:50%;align-self:end"></div></div><output></output><output></output></div>`).join('');
+  const rowsT = [...TS.learners.map(s => [s.name, s.l]), ...test.experts.map(e => [e.name, e])];
+  $('scoreTable').innerHTML = '<tr><th>policy</th><th>total return</th><th>Sharpe</th><th>max drawdown</th></tr>' +
+    rowsT.map(([n, s]) => `<tr><td>${n}</td><td>${pct(s.total_return)}</td><td>${s.sharpe.toFixed(2)}</td><td>${pct(s.max_drawdown)}</td></tr>`).join('');
+  const champs = test.experts.slice(0, 5), bh = test.experts.find(e => e.name === 'buy & hold'), hedge = test.learners.hedge;
+  const bestChamp = champs.reduce((a, b) => (b.sharpe > a.sharpe ? b : a));
+  const beatBH = champs.filter(c => c.sharpe > bh.sharpe).length, hedgeBeats = champs.filter(c => hedge.sharpe > c.sharpe).length;
+  $('verdict').innerHTML = `<b>${beatBH === 0 ? 'No evolved champion beat simply holding the index.' : `${beatBH} of 5 champions beat buy & hold on Sharpe.`}</b> ` +
+    `Best champion ${bestChamp.name}: Sharpe ${bestChamp.sharpe.toFixed(2)} vs buy & hold ${bh.sharpe.toFixed(2)}. ` +
+    `Hedge beat ${hedgeBeats} of 5 champions without knowing in advance which would do well (Sharpe ${hedge.sharpe.toFixed(2)}). ` +
+    `Breeding on 2016-2021 US data produced strategies that look excellent in-sample and transfer poorly: the honest result of a large search space.`;
+  $('testNote').textContent = `Hedge η=${hedge.eta.toFixed(4)}; Fixed Share η=${test.learners.fixed_share.eta.toFixed(4)}, α=${test.learners.fixed_share.alpha.toFixed(4)}; rewards bounded at ±${test.reward_bound * 100}% per day (${test.clipped_rewards} clipped). The window grows with each new FRED close; champions stay frozen.`;
+}
+
+hoverable('cFit', 'tipFit', G, g => [`generation ${g}`, '', [['best train', evo.history[g].train[0].toFixed(3), css('--s1')], ['median train', evo.history[g].train[evo.history[g].train.length >> 1].toFixed(3), css('--s1')], ['best-trained → valid', evo.history[g].validation[0].toFixed(3), css('--s2')], ['best valid', Math.max(...evo.history[g].validation).toFixed(3), css('--s3')]]], { l: 52, r: 110 });
+hoverable('cPrice', 'tipPrice', T, i => [test.dates[i], test.title, [['close', test.closes[i].toFixed(2), css('--text-2')]]]);
+hoverable('cEquity', 'tipEquity', T, i => [test.dates[i], 'growth of 100', [...TS.learners, ...TS.experts].map(s => [s.name, s.eq[i].toFixed(1), s.color])], { l: 52, r: 96 });
+$('cDna').addEventListener('pointermove', e => {
+  if (!evo) return; const rect = $('cDna').getBoundingClientRect(), g = G.hover ?? Math.floor(G.t);
+  const c = Math.floor((e.clientX - rect.left) / rect.width * evo.genes.length), r = Math.floor((e.clientY - rect.top - 16) / (rect.height - 16) * evo.history[g].dna.length);
+  const tip = $('tipDna'); if (r < 0 || c < 0 || c >= evo.genes.length) { tip.style.display = 'none'; return; }
+  tip.innerHTML = `<div><b>player rank ${r + 1}</b><i>gen ${g}</i></div><div><span>${evo.genes[c].replace(/_/g, ' ')}</span><span>${(evo.history[g].dna[r][c] / 99).toFixed(2)}</span></div><div><span>train Sharpe</span><span>${evo.history[g].train[r].toFixed(2)}</span></div><div><span>valid Sharpe</span><span>${evo.history[g].validation[r].toFixed(2)}</span></div>`;
+  tip.style.display = 'block'; tip.style.left = Math.min(e.clientX - rect.left + 14, rect.width - tip.offsetWidth) + 'px'; tip.style.top = (e.clientY - rect.top + 30) + 'px';
+});
+$('cDna').addEventListener('pointerleave', () => { $('tipDna').style.display = 'none'; });
+player(G, $('gPlay'), $('gScrub'), $('gSpeed'), () => 0.004);
+player(T, $('tPlay'), $('tScrub'), $('tSpeed'), s => 0.06 * Math.max(1, s.n / 500));
+
+// ---------- tab 2: synthetic regret lab ----------
+const S = { t: 0, n: 0, hover: null }, EX = ['cash', 'long', 'short', 'momentum', 'reversal'], EXC = ['--neutral', '--s3', '--s8', '--s4', '--s5'];
+let sdata = null, ss = null;
+function sBuild(d) {
+  const h = d.hedge, n = h.trace.length, totals = EX.map(() => 0), experts = EX.map(() => []), best = [];
+  h.trace.forEach(r => { r.expert_rewards.forEach((g, k) => { totals[k] += g; experts[k].push(totals[k]); }); best.push(totals.indexOf(Math.max(...totals))); });
+  const lnK = Math.log(EX.length), regime = new Array(n);
+  d.segments.forEach(([a, b, kind]) => { for (let i = a; i < b; i++) regime[i] = kind; });
+  return { n, experts, best, regime, hedge: h.trace.map(r => r.cumulative_reward), share: d.fixed_share.trace.map(r => r.cumulative_reward),
+    hRegret: h.trace.map(r => r.regret), sRegret: d.fixed_share.trace.map(r => r.regret), oracle: d.segment_oracle,
+    bound: h.trace.map((_, i) => 2 * h.reward_bound * (lnK / h.eta + h.eta * (i + 1) / 8)),
+    bands: d.segments.filter((_, k) => k % 2 === 1).map(([a, b]) => [a, b]) };
+}
+function sDraw() {
+  if (!ss) return;
+  const i = Math.min(ss.n - 1, Math.floor(S.t)), at = S.hover != null && S.hover <= i ? S.hover : i, colors = EXC.map(css);
+  const f = frame($('cReward'), ss.n, [ss.hedge, ss.share, ss.oracle, ...ss.experts], { bands: ss.bands });
+  ss.experts.forEach((v, k) => line(f, v, i, colors[k], 1.5, [], .8));
+  line(f, ss.oracle, i, css('--neutral'), 1.5, [5, 4]); line(f, ss.hedge, i, css('--s1'), 3); line(f, ss.share, i, css('--s7'), 3);
+  endLabels(f, [...EX.map((e, k) => ({ name: e, values: ss.experts[k], color: colors[k] })), { name: 'oracle', values: ss.oracle, color: css('--neutral') },
+    { name: 'hedge', values: ss.hedge, color: css('--s1'), bold: true }, { name: 'fixed share', values: ss.share, color: css('--s7'), bold: true }], i);
+  crosshair(f, S.hover != null && S.hover <= i ? S.hover : null);
+
+  const { ctx, w, h } = setup($('cWeights')), half = (h - 26) / 2;
+  ss.bands.forEach(([a, b]) => { ctx.fillStyle = css('--band'); ctx.fillRect(w * a / ss.n, 0, w * (b - a) / ss.n, h - 14); });
+  [[sdata.hedge.trace, 0, 'Hedge'], [sdata.fixed_share.trace, half + 6, 'Fixed Share']].forEach(([trace, y0, label]) => {
+    for (let t = 0; t <= i; t++) { let acc = 0; const xx = w * t / ss.n, bw = Math.max(1, w / ss.n + .5);
+      trace[t].weights.forEach((wt, k) => { ctx.fillStyle = colors[k]; ctx.fillRect(xx, y0 + half * acc, bw, half * wt); acc += wt; }); }
+    ctx.fillStyle = css('--text'); ctx.font = '600 ' + FONT; ctx.textAlign = 'left'; ctx.fillText(label, 4, y0 + 12);
+  });
+  ctx.fillStyle = css('--muted'); ctx.font = FONT; ctx.fillText('round →', 4, h - 2);
+  if (S.hover != null && S.hover <= i) { const xx = Math.round(w * S.hover / ss.n) + .5; ctx.strokeStyle = css('--text'); ctx.beginPath(); ctx.moveTo(xx, 0); ctx.lineTo(xx, h - 14); ctx.stroke(); }
+
+  const fr = frame($('cRegret'), ss.n, [ss.hRegret, ss.sRegret, ss.bound], { bands: ss.bands });
+  line(fr, ss.bound, ss.n - 1, css('--neutral'), 1.5, [5, 4]); line(fr, ss.hRegret, i, css('--s1'), 2.5); line(fr, ss.sRegret, i, css('--s7'), 2.5);
+  endLabels(fr, [{ name: 'hedge', values: ss.hRegret, color: css('--s1'), bold: true }, { name: 'fixed share', values: ss.sRegret, color: css('--s7'), bold: true }], i);
+  crosshair(fr, S.hover != null && S.hover <= i ? S.hover : null);
+
+  $('sHedge').textContent = sgn(ss.hedge[at], 3); $('sHedgeR').textContent = 'regret ' + ss.hRegret[at].toFixed(3);
+  $('sShare').textContent = sgn(ss.share[at], 3); $('sShareR').textContent = 'regret ' + ss.sRegret[at].toFixed(3);
+  $('sBest').textContent = EX[ss.best[at]]; $('sBestVal').textContent = sgn(ss.experts[ss.best[at]][at], 3);
+  $('sRegime').textContent = ss.regime[at]; const r = sdata.hedge.trace[at].return;
+  $('sReturn').innerHTML = `return <span style="color:${r >= 0 ? css('--s1') : css('--s8')}">${r >= 0 ? '▲' : '▼'}</span> ${pct(r, 2)}`;
+  $('sOut').textContent = `round ${at + 1} / ${ss.n}`; if (S.hover == null) $('sScrub').value = i + 1;
+}
+async function sLoad() {
+  $('sError').textContent = '';
+  const q = new URLSearchParams({ scenario: $('sScenario').value, seed: $('sSeed').value, rounds: $('sRounds').value });
+  try {
+    const res = await fetch('/api/run?' + q), body = await res.json(); if (!res.ok) throw new Error(body.error);
+    sdata = body; ss = sBuild(body); S.n = ss.n; S.t = reduced ? S.n - 1 : 0; $('sScrub').max = S.n; S.set(!reduced);
+    $('legReward').innerHTML = '<span style="--c:var(--s1)">hedge</span><span style="--c:var(--s7)">fixed share</span><span class="dash" style="--c:var(--neutral)">regime oracle</span>' + EX.map((e, k) => `<span style="--c:var(${EXC[k]})">${e}</span>`).join('') + '<span class="band">alternate regimes</span>';
+  } catch (e) { $('sError').textContent = 'Run failed: ' + e.message; }
+}
+hoverable('cReward', 'tipReward', S, i => [`round ${i + 1}`, ss.regime[i], [['hedge', sgn(ss.hedge[i], 3), css('--s1')], ['fixed share', sgn(ss.share[i], 3), css('--s7')], ['oracle', sgn(ss.oracle[i], 3), css('--neutral')], ...EX.map((e, k) => [e, sgn(ss.experts[k][i], 3), css(EXC[k])])]]);
+hoverable('cWeights', 'tipWeights', S, i => [`round ${i + 1}`, ss.regime[i], EX.map((e, k) => [e, `${(sdata.hedge.trace[i].weights[k] * 100).toFixed(0)}% / ${(sdata.fixed_share.trace[i].weights[k] * 100).toFixed(0)}%`, css(EXC[k])])], { l: 0, r: 0 });
+hoverable('cRegret', 'tipRegret', S, i => [`round ${i + 1}`, ss.regime[i], [['hedge', ss.hRegret[i].toFixed(3), css('--s1')], ['fixed share', ss.sRegret[i].toFixed(3), css('--s7')], ['bound', ss.bound[i].toFixed(3), css('--neutral')]]]);
+player(S, $('sPlay'), $('sScrub'), $('sSpeed'), s => 0.06 * Math.max(1, s.n / 500));
+$('sForm').addEventListener('submit', e => { e.preventDefault(); sLoad(); });
+$('sScenario').addEventListener('change', sLoad);
+$('sRandom').addEventListener('click', () => { $('sSeed').value = Math.floor(Math.random() * 100000); sLoad(); });
+
+// ---------- shell ----------
+function show(tab) {
+  const g = tab === 'G'; $('viewG').hidden = !g; $('viewS').hidden = g;
+  $('tabG').setAttribute('aria-selected', g); $('tabS').setAttribute('aria-selected', !g);
+  history.replaceState(null, '', g ? location.pathname : '?tab=synthetic');
+  if (!g && !sdata) sLoad();
+}
+$('tabG').addEventListener('click', () => show('G')); $('tabS').addEventListener('click', () => show('S'));
+let last = 0;
 function tick(now) {
   const dt = Math.min(64, now - (last || now)); last = now;
-  if (playing && series && t < series.n - 1) {
-    t = Math.min(series.n - 1, t + dt * .06 * +$('speed').value * Math.max(1, series.n / 500));
-    if (t >= series.n - 1) setPlaying(false);
-  }
-  draw(); requestAnimationFrame(tick);
+  if (!$('viewG').hidden) { G.advance(dt); T.advance(dt); drawEvolution(); drawTest(); } else { S.advance(dt); sDraw(); }
+  requestAnimationFrame(tick);
 }
-
-function setPlaying(on) { playing = on; $('play').textContent = on ? 'Pause' : (series && t >= series.n - 1 ? 'Replay' : 'Play'); }
-
-function tips(canvasId, tipId, rows) {
-  const canvas = $(canvasId), tip = $(tipId);
-  const move = e => {
-    if (!series) return; const rect = canvas.getBoundingClientRect(), padL = canvasId === 'cWeights' ? 4 : 52, padR = canvasId === 'cWeights' ? 4 : 86;
-    const f = (e.clientX - rect.left - padL) / (rect.width - padL - padR); const upto = Math.floor(t);
-    if (f < 0 || f > 1) return leave(); hover = Math.min(upto, Math.round(f * (series.n - 1)));
-    tip.innerHTML = `<div><b>round ${hover + 1}</b><i>${regimeOf(hover)}</i></div>` + rows(hover).map(([k, v, c]) => `<div><span><span style="color:${c}">■</span> ${k}</span><span>${v}</span></div>`).join('');
-    tip.style.display = 'block'; const px = e.clientX - rect.left + canvas.offsetLeft;
-    tip.style.left = Math.min(px + 14, canvas.offsetLeft + rect.width - tip.offsetWidth) + 'px'; tip.style.top = (canvas.offsetTop + 8) + 'px';
-  };
-  const leave = () => { hover = null; tip.style.display = 'none'; };
-  canvas.addEventListener('pointermove', move); canvas.addEventListener('pointerleave', leave);
-}
-
-async function load() {
-  $('error').textContent = '';
-  const q = new URLSearchParams({ scenario: $('scenario').value, seed: $('seed').value, rounds: $('rounds').value });
-  try {
-    const res = await fetch('/api/run?' + q); const body = await res.json(); if (!res.ok) throw new Error(body.error);
-    data = body; series = build(data);
-    $('legReward').querySelector('.band')?.remove(); $('legRegret').querySelector('.band')?.remove();
-    if (data.scenario === 'switching') ['legReward', 'legRegret'].forEach(id => $(id).insertAdjacentHTML('beforeend', '<span class="band">shaded = downward regime</span>')); t = reduced ? series.n - 1 : 0; $('scrub').max = series.n; setPlaying(!reduced);
-    history.replaceState(null, '', '?' + q);
-    $('table').innerHTML = '<tr><th>policy</th><th>cumulative reward</th></tr>' +
-      [['hedge', data.cumulative_reward], ['uniform', data.uniform_reward], ...Object.entries(data.expert_rewards)].map(([k, v]) => `<tr><td>${k}</td><td>${v.toFixed(6)}</td></tr>`).join('') +
-      `<tr><td>regret (vs ${data.best_fixed_expert})</td><td>${data.regret.toFixed(6)}</td></tr><tr><td>analytical bound</td><td>${data.regret_upper_bound.toFixed(6)}</td></tr><tr><td>η</td><td>${data.eta.toFixed(6)}</td></tr>`;
-    $('hash').textContent = `input sha256 ${data.input_sha256.slice(0, 16)}… · seed ${data.seed} · ${data.rounds} rounds`;
-  } catch (e) { $('error').textContent = 'Run failed: ' + e.message; }
-}
-
-$('wBars').innerHTML = EXPERTS.map(e => `<div class="wrow" style="--c:var(--${e})"><span>${e}</span><div class="track"><div class="fill"></div></div><output>25.0%</output></div>`).join('');
-$('legReward').innerHTML = '<span style="--c:var(--hedge)">hedge</span><span class="dash" style="--c:var(--uniform)">uniform mixture</span>' + EXPERTS.map(e => `<span style="--c:var(--${e})">${e}</span>`).join('');
-$('legRegret').innerHTML = '<span style="--c:var(--hedge)">external regret</span><span class="dash" style="--c:var(--bound)">analytical bound 2B(ln K/η + ηt/8)</span>';
-tips('cReward', 'tipReward', i => [['hedge', fmt(series.hedge[i]), css('--hedge')], ['uniform', fmt(series.uniform[i]), css('--uniform')], ...EXPERTS.map((e, k) => [e, fmt(series.experts[k][i]), css('--' + e)])]);
-tips('cWeights', 'tipWeights', i => EXPERTS.map((e, k) => [e, (data.trace[i].weights[k] * 100).toFixed(1) + '%', css('--' + e)]));
-tips('cRegret', 'tipRegret', i => [['regret', series.regret[i].toFixed(4), css('--hedge')], ['bound', series.bound[i].toFixed(4), css('--bound')]]);
-$('form').addEventListener('submit', e => { e.preventDefault(); load(); });
-$('scenario').addEventListener('change', load);
-$('play').addEventListener('click', () => { if (series && t >= series.n - 1) t = 0; setPlaying(!playing); });
-$('scrub').addEventListener('input', e => { t = +e.target.value - 1; setPlaying(false); });
-addEventListener('keydown', e => { if (e.code === 'Space' && !/INPUT|SELECT|BUTTON/.test(e.target.tagName)) { e.preventDefault(); $('play').click(); } });
-const initial = new URLSearchParams(location.search);
-['scenario', 'seed', 'rounds'].forEach(k => initial.has(k) && ($(k).value = initial.get(k)));
-load(); requestAnimationFrame(tick);
+addEventListener('keydown', e => { if (e.code === 'Space' && !/INPUT|SELECT|BUTTON/.test(e.target.tagName)) { e.preventDefault(); ($('viewG').hidden ? $('sPlay') : $('gPlay')).click(); } });
+addEventListener('resize', () => evo && buildCards());
+(async () => {
+  try { evo = await (await fetch('/api/evolution')).json(); G.n = evo.history.length; $('gScrub').max = G.n - 1; G.t = reduced ? G.n - 1 : 0; G.set(!reduced); buildCards(); }
+  catch (e) { $('testError').textContent = 'Evolution data unavailable.'; }
+  try { const res = await fetch('/api/test'), body = await res.json(); if (!res.ok) throw new Error(body.error); test = body; buildTest(); }
+  catch (e) { $('testError').textContent = 'Final test unavailable: ' + e.message; $('testBody').hidden = true; }
+})();
+if (new URLSearchParams(location.search).get('tab') === 'synthetic') show('S');
+requestAnimationFrame(tick);
 </script>
 </body>
 </html>
