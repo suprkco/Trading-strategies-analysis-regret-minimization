@@ -93,4 +93,4 @@ The synthetic regimes are simple and public. No real market observations, costs,
 
 Next: adversarial sequences, switching comparators, horizon sensitivity, and a separate transaction-cost-aware execution model before any market-data evaluation. Real-data work would require versioned licensed data and a predeclared chronological evaluation protocol.
 
-Original portfolio implementation by Kilian Codaccioni, developed with AI assistance. No employer/client materials. The classical algorithm is credited to the literature and is not claimed as original research.
+Original portfolio implementation, architected and built by Kilian Codaccioni using generative AI as a productivity multiplier, with a strict focus on evaluation and reproducibility. No employer/client materials. The classical algorithm is credited to the literature and is not claimed as original research.
