@@ -16,4 +16,10 @@ Fixed Share (Herbster and Warmuth, [Tracking the Best Expert](https://doi.org/10
 
 ## Genetic search and held-out test
 
-See the README for the genome, operators and protocol. Fitness is the mean annualised Sharpe of net daily returns across three training indices, which rewards consistency over one lucky market. Champions are the five best validation scores in the final generation. The out-of-sample replay (`regret_lab/live.py`) runs the frozen champions, buy & hold and cash on the test index, clips daily rewards to +/-15% (counted, zero so far), and combines them with Hedge (eta from a declared 756-day horizon) and Fixed Share (declared 63-day regime length). The regret bound printed for the test is valid but loose at this reward scale.
+The genome, operators, costs and protocol are tabulated in the README. Three choices deserve justification.
+
+- **Score = Sharpe - 2 x |max drawdown|.** Sharpe alone rewards smooth curves that hide a crash; the drawdown term makes tail losses visible to selection. The weight 2 was fixed before running and not searched.
+- **Diversity.** Tournament selection uses the score minus 0.5 x the highest correlation (weekly training returns) with any of the five fittest individuals, so near-copies of a leader breed less. Champions are then chosen greedily on validation with a cap of 0.5 on absolute pairwise correlation. Online combination only helps when experts fail at different times.
+- **Volatility-dependent costs.** FRED has no volume, so a volume-based impact model (such as Almgren-Chriss) cannot be calibrated. Instead, each unit of exposure traded costs 2 bp plus 10% of the 20-day daily volatility, which makes trading in turbulence expensive. Short exposure pays 3% a year.
+
+The out-of-sample replay (`regret_lab/live.py`) runs each seed's frozen champions, buy & hold and cash on every declared test market. It clips daily rewards to the training data's 99.5th percentile absolute move (6.3%) and counts the clipped values. It combines the experts with Hedge (eta from a declared 756-day horizon) and Fixed Share (declared 63-day regime length). Per market, differences in Sharpe are averaged over the five seeds with a Student-t 95% interval. Five seeds make the intervals wide. A difference whose interval crosses zero is reported as noise, not as a finding.

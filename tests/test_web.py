@@ -38,3 +38,20 @@ def test_http_routes(base):
         with pytest.raises(HTTPError) as error:
             urlopen(base + path)
         assert error.value.code == status
+
+
+def test_evolution_artifacts_are_served(base):
+    manifest = json.load(urlopen(base + '/api/manifest'))
+    assert len(manifest['runs']) == 5 and manifest['config']['test_assets'][0] == 'NIKKEI225'
+    seed = manifest['runs'][0]['seed']
+    history = json.load(urlopen(f'{base}/api/evolution?seed={seed}'))['history']
+    assert len(history) == manifest['config']['generations']
+    assert all(len(code) == len(manifest['genes']) for code in history[-1]['dna'])
+    assert all(1 <= len(r['champions']) <= 5 for r in manifest['runs'])
+    for path in ('/api/evolution?seed=999', '/api/evolution?seed=../manifest'):
+        with pytest.raises(HTTPError) as error:
+            urlopen(base + path)
+        assert error.value.code == 404
+    with pytest.raises(HTTPError) as error:
+        urlopen(base + '/api/test?seed=1&market=SP500')
+    assert error.value.code == 400

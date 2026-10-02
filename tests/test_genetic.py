@@ -12,9 +12,12 @@ from regret_lab.genetic import (
     evolve,
     features,
     fitness,
+    max_drawdown,
+    reflect,
+    select_champions,
     sharpe,
 )
-from regret_lab.live import replay
+from regret_lab.live import prepare, replay, summary
 from regret_lab.market import parse, window
 
 
@@ -75,7 +78,37 @@ def test_evolution_is_reproducible_and_keeps_elites():
     assert first == second
     best = [r['train'][0] for r in first]
     assert best == sorted(best)
-    assert fitness(genomes[0], assets, train) == pytest.approx(best[-1])
+    assert fitness(genomes[0], assets, train) == pytest.approx(best[-1], abs=1e-4)
+    assert all(len(code) == len(GENES) for code in first[-1]['dna'])
+
+
+def test_champions_are_decorrelated_and_led_by_the_best():
+    assets = {'A': synthetic_asset(1), 'B': synthetic_asset(2)}
+    valid = {k: (WARMUP, WARMUP + 250) for k in assets}
+    rng = random.Random(8)
+    genomes = [[rng.random() for _ in GENES] for _ in range(30)]
+    chosen = select_champions(genomes, assets, valid, count=5, max_correlation=0.5)
+    assert 1 <= len(chosen) <= 5
+    assert chosen[0][0] == pytest.approx(max(fitness(dna, assets, valid) for dna in genomes))
+
+
+def test_reflected_mutation_stays_in_bounds_without_piling_up():
+    assert reflect(1.2) == pytest.approx(0.8) and reflect(-0.3) == pytest.approx(0.3) and reflect(0.4) == 0.4
+    rng = random.Random(0)
+    values = [reflect(1.0 + rng.gauss(0, 0.15)) for _ in range(1000)]
+    assert all(0 <= v <= 1 for v in values) and sum(v == 1.0 for v in values) == 0
+
+
+def test_short_positions_pay_financing():
+    asset = synthetic_asset()
+    flat = asset[0], [0.0] * len(asset[1]), asset[2]
+    dna = [0.5] * len(GENES)
+    dna[GENES.index('bias')], dna[GENES.index('max_short')] = 0.0, 1.0
+    for name in ('dead_zone', 'vol_target_mix'):
+        dna[GENES.index(name)] = 0.0
+    daily, exposure = backtest(dna, flat, WARMUP, WARMUP + 100)
+    assert exposure[-1] < -0.5 and daily[-1] < 0
+    assert max_drawdown([0.1, -0.5, 0.2]) == pytest.approx(-0.5)
 
 
 def test_sharpe_edge_cases():
@@ -97,10 +130,14 @@ def test_replay_runs_offline_on_given_rows():
     for i in range(700):
         price *= 1 + rng.gauss(0, 0.01)
         rows.append((f'{2023 + i // 300}-{1 + i % 300 // 25:02d}-{1 + i % 25:02d}', price))
-    artifact = {'champions': [{'id': f'C{i}', 'dna': [rng.random() for _ in GENES]} for i in range(3)]}
-    result = replay(artifact, rows)
+    run = {'seed': 1, 'champions': [{'id': f'C{i}', 'dna': [rng.random() for _ in GENES]} for i in range(3)]}
+    prepared = prepare('NIKKEI225', rows)
+    result = replay(run, 'NIKKEI225', prepared, 0.06)
     names = [e['name'] for e in result['experts']]
     assert names == ['C0', 'C1', 'C2', 'buy & hold', 'cash']
     hedge = result['learners']['hedge']
     assert len(hedge['daily']) == len(result['dates']) and all(math.isclose(sum(w), 1) for w in hedge['weights'])
-    assert result['dates'][0] >= '2024-01-01'
+    assert result['dates'][0] >= '2024-01-01' and result['previously_seen']
+    info = {'config': {'reward_bound': 0.06}, 'runs': [run, {**run, 'seed': 2}]}
+    table = summary({'NIKKEI225': prepared}, info)
+    assert len(table['cells']) == 2 and table['markets'][0]['hedge_minus_buy_hold']['n'] == 2

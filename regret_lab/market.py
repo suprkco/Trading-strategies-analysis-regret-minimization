@@ -9,10 +9,13 @@ from urllib.request import Request, urlopen
 
 FRED_URL = 'https://fred.stlouisfed.org/graph/fredgraph.csv?id={}'
 SERIES = {'NASDAQCOM': 'NASDAQ Composite', 'SP500': 'S&P 500', 'DJIA': 'Dow Jones Industrial Average',
-          'NIKKEI225': 'Nikkei 225'}
+          'NIKKEI225': 'Nikkei 225', 'DJTA': 'Dow Jones Transportation', 'DJUA': 'Dow Jones Utilities',
+          'DCOILBRENTEU': 'Brent crude oil', 'DEXUSEU': 'EUR/USD', 'DEXJPUS': 'JPY per USD',
+          'CBBTCUSD': 'Bitcoin (Coinbase)'}
 TRAIN_ASSETS = ('NASDAQCOM', 'SP500', 'DJIA')
-TEST_ASSET = 'NIKKEI225'
-# Chronological windows; the test asset is never loaded by the evolution script.
+# Declared on 2 October 2026, before any v2 test was computed. None is used for training or selection.
+TEST_ASSETS = ('NIKKEI225', 'DJTA', 'DJUA', 'DCOILBRENTEU', 'DEXUSEU', 'DEXJPUS', 'CBBTCUSD')
+PREVIOUSLY_SEEN = {'NIKKEI225': 'used as the single test market of an earlier version of this lab'}
 TRAIN = ('2016-10-01', '2021-12-31')
 VALIDATION = ('2022-01-01', '2023-12-31')
 TEST_START = '2024-01-01'

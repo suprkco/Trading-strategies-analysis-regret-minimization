@@ -19,9 +19,10 @@ from regret_lab.core import (
 )
 
 STATIC = Path(__file__).with_name('static')
-EVOLUTION = Path(__file__).resolve().parents[1] / 'evaluation' / 'evolution.json'
-_test_cache = {'at': 0.0, 'body': None}
-_test_lock = threading.Lock()
+EVOLUTION = Path(__file__).resolve().parents[1] / 'evaluation' / 'evolution'
+MARKET_MAX_AGE = 12 * 3600
+_markets = {'at': 0.0, 'prepared': None, 'summary': None, 'tests': {}}
+_market_lock = threading.Lock()
 MAX_WEB_ROUNDS = 2000
 
 
@@ -47,14 +48,40 @@ def run(query):
             'hedge': evaluate(values), 'fixed_share': share, 'segment_oracle': segment_oracle(values, segments)}
 
 
-def test_payload(max_age=12 * 3600):
-    """Out-of-sample replay on fresh FRED data, recomputed at most twice a day."""
-    from regret_lab.live import replay
-    with _test_lock:
-        if _test_cache['body'] is None or time.time() - _test_cache['at'] > max_age:
-            _test_cache['body'] = json.dumps(replay()).encode()
-            _test_cache['at'] = time.time()
-        return _test_cache['body']
+def market_state():
+    """Fresh FRED data for every declared test market, prepared and summarised at most twice a day."""
+    from regret_lab.live import prepare, summary
+    from regret_lab.market import TEST_ASSETS
+    with _market_lock:
+        if _markets['prepared'] is None or time.time() - _markets['at'] > MARKET_MAX_AGE:
+            prepared = {market: prepare(market) for market in TEST_ASSETS}
+            _markets.update(at=time.time(), prepared=prepared, tests={},
+                            summary=json.dumps(summary(prepared)).encode())
+        return _markets
+
+
+def test_payload(query):
+    from regret_lab.live import manifest, replay
+    from regret_lab.market import TEST_ASSETS
+    info = manifest()
+    seeds = {run['seed']: run for run in info['runs']}
+    market = query.get('market', [TEST_ASSETS[0]])[0]
+    seed = query.get('seed', [str(info['runs'][0]['seed'])])[0]
+    if market not in TEST_ASSETS or not seed.isdigit() or int(seed) not in seeds:
+        raise ValueError('Unknown market or seed')
+    state = market_state()
+    key = (market, int(seed))
+    if key not in state['tests']:
+        result = replay(seeds[int(seed)], market, state['prepared'][market], info['config']['reward_bound'])
+        state['tests'][key] = json.dumps(result).encode()
+    return state['tests'][key]
+
+
+def warm():
+    try:
+        market_state()
+    except (OSError, ValueError) as error:
+        print(f'market warm-up failed: {error}')
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -79,12 +106,21 @@ class Handler(BaseHTTPRequestHandler):
             except ValueError as error:
                 return self.send(400, json.dumps({'error': str(error)}).encode(), 'application/json')
             return self.send(200, body, 'application/json')
+        if url.path == '/api/manifest':
+            return self.send(200, (EVOLUTION / 'manifest.json').read_bytes(), 'application/json')
         if url.path == '/api/evolution':
-            return self.send(200, EVOLUTION.read_bytes(), 'application/json')
-        if url.path == '/api/test':
+            seed = parse_qs(url.query).get('seed', [''])[0]
+            path = EVOLUTION / f'seed-{seed}.json'
+            if not seed.isdigit() or not path.exists():
+                return self.send(404, b'{"error":"Unknown seed"}', 'application/json')
+            return self.send(200, path.read_bytes(), 'application/json')
+        if url.path in ('/api/test', '/api/summary'):
             try:
-                return self.send(200, test_payload(), 'application/json')
-            except (OSError, ValueError) as error:
+                body = test_payload(parse_qs(url.query)) if url.path == '/api/test' else market_state()['summary']
+                return self.send(200, body, 'application/json')
+            except ValueError as error:
+                return self.send(400, json.dumps({'error': str(error)}).encode(), 'application/json')
+            except OSError as error:
                 return self.send(503, json.dumps({'error': f'Market data unavailable: {error}'}).encode(), 'application/json')
         if url.path == '/':
             return self.send(200, (STATIC / 'index.html').read_bytes(), 'text/html; charset=utf-8')
@@ -97,6 +133,8 @@ def main():
     port = int(os.getenv('PORT', '8000'))
     host = os.getenv('HOST', '127.0.0.1')
     print(f'regret lab on http://{host}:{port}')
+    if os.getenv('WARM_MARKETS', '1') == '1':
+        threading.Thread(target=warm, daemon=True).start()
     ThreadingHTTPServer((host, port), Handler).serve_forever()
 
 

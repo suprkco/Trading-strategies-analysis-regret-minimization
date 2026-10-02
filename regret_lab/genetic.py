@@ -10,7 +10,13 @@ GENES = ([f'calm_{s}' for s in SIGNALS] + [f'stress_{s}' for s in SIGNALS] + [f'
          ['bias', 'gain', 'dead_zone', 'max_short', 'stress_threshold', 'vol_target', 'vol_target_mix',
           'smoothing', 'stop_loss', 'cooldown'])
 WARMUP = 260
-COST = 0.0005  # 5 basis points per unit of exposure traded
+BASE_COST = 0.0002       # 2 bp per unit of exposure traded
+VOL_COST = 0.1           # plus 10% of the recent daily volatility per unit traded
+SHORT_FINANCING = 0.03   # 3% a year on short exposure
+DRAWDOWN_PENALTY = 2.0   # score = Sharpe - 2 x |max drawdown|
+DIVERSITY_PENALTY = 0.5  # selection score loses 0.5 x correlation with the closest fitter leader
+DIVERSITY_LEADERS = 5
+ALPHABET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_'
 
 
 def decode(dna):
@@ -83,7 +89,11 @@ def features(closes):
 
 
 def backtest(dna, asset, start, end):
-    """Daily net returns for t in [start, end): exposure is decided at close t-1 and earns return t."""
+    """Daily net returns for t in [start, end): exposure is decided at close t-1 and earns return t.
+
+    Costs: BASE_COST plus VOL_COST times recent daily volatility per unit traded (trading is dearer in
+    turbulence), and SHORT_FINANCING per year on short exposure.
+    """
     closes, returns, f = asset
     d = decode(dna)
     p = d['periods']
@@ -104,7 +114,8 @@ def backtest(dna, asset, start, end):
         if frozen:
             target, frozen = 0.0, frozen - 1
         new = exposure + d['smoothing'] * (target - exposure)
-        net = new * returns[t] - COST * abs(new - exposure)
+        cost = (BASE_COST + VOL_COST * f['vol20'][s]) * abs(new - exposure) + SHORT_FINANCING / 252 * max(0.0, -new)
+        net = new * returns[t] - cost
         exposure = new
         equity *= 1 + net
         peak = max(peak, equity)
@@ -123,46 +134,116 @@ def sharpe(daily):
     return mean / sd * math.sqrt(252) if sd > 1e-12 else 0.0
 
 
+def max_drawdown(daily):
+    equity = peak = 1.0
+    worst = 0.0
+    for r in daily:
+        equity *= 1 + r
+        peak = max(peak, equity)
+        worst = min(worst, equity / peak - 1)
+    return worst
+
+
+def score(daily):
+    """Sharpe minus a drawdown penalty: a smooth curve that hides a crash should not win."""
+    return sharpe(daily) + DRAWDOWN_PENALTY * max_drawdown(daily)
+
+
+def evaluate_genome(dna, assets, windows):
+    """Mean score across assets, plus weekly returns (all assets concatenated) for correlation checks."""
+    total, weekly = 0.0, []
+    for name in assets:
+        daily = backtest(dna, assets[name], *windows[name])[0]
+        total += score(daily)
+        weekly += [sum(daily[i:i + 5]) for i in range(0, len(daily) - 4, 5)]
+    return total / len(assets), weekly
+
+
 def fitness(dna, assets, windows):
-    """Mean annualised Sharpe ratio of net returns across assets: rewards consistency, not one lucky market."""
-    return sum(sharpe(backtest(dna, assets[name], *windows[name])[0]) for name in assets) / len(assets)
+    return evaluate_genome(dna, assets, windows)[0]
 
 
-def evolve(assets, train, validation, seed=7, population=60, generations=35, elite=4, immigrants=4,
+def standardize(values):
+    mean = sum(values) / len(values)
+    sd = math.sqrt(sum((v - mean) ** 2 for v in values) / len(values))
+    return [(v - mean) / sd for v in values] if sd > 1e-12 else [0.0] * len(values)
+
+
+def correlation(a, b):
+    """Pearson correlation of two already standardized vectors."""
+    return sum(x * y for x, y in zip(a, b)) / len(a)
+
+
+def reflect(value):
+    """Mutation bounces off the [0, 1] walls instead of piling up on them."""
+    value = abs(value) % 2
+    return 2 - value if value > 1 else value
+
+
+def encode(dna):
+    return ''.join(ALPHABET[min(63, int(g * 64))] for g in dna)
+
+
+def evolve(assets, train, validation, seed=7, population=120, generations=60, elite=4, immigrants=4,
            tournament=3, mutation_rate=0.12, mutation_scale=0.15, on_generation=None):
-    """Tournament selection, uniform crossover, Gaussian mutation, elitism and random immigrants."""
+    """Tournament selection on a diversity-adjusted score, uniform crossover, reflected Gaussian mutation,
+    elitism on the raw score and random immigrants."""
     rng = random.Random(seed)
     pool = [[rng.random() for _ in GENES] for _ in range(population)]
     history = []
     for generation in range(generations):
-        scored = sorted(((fitness(dna, assets, train), dna) for dna in pool), key=lambda x: -x[0])
-        validation_scores = [fitness(dna, assets, validation) for _, dna in scored]
-        record = {'generation': generation, 'train': [s for s, _ in scored], 'validation': validation_scores,
-                  'dna': [[int(g * 99.999) for g in dna] for _, dna in scored],  # 0-99 for display
-                  'diversity': sum(statistics_spread(scored, i) for i in range(len(GENES))) / len(GENES)}
+        evaluated = [(*evaluate_genome(dna, assets, train), dna) for dna in pool]
+        evaluated.sort(key=lambda x: -x[0])
+        leaders = [standardize(weekly) for _, weekly, _ in evaluated[:DIVERSITY_LEADERS]]
+        adjusted = []
+        for rank, (raw, weekly, dna) in enumerate(evaluated):
+            z = standardize(weekly)
+            # Penalise resembling a fitter leader: the population should not collapse onto one bet.
+            above = leaders[:min(rank, DIVERSITY_LEADERS)]
+            penalty = max((correlation(z, leader) for leader in above), default=0.0)
+            adjusted.append((raw - DIVERSITY_PENALTY * max(0.0, penalty), dna))
+        validation_scores = [fitness(dna, assets, validation) for _, _, dna in evaluated]
+        genomes = [dna for _, _, dna in evaluated]
+        record = {'generation': generation, 'train': [round(raw, 4) for raw, _, _ in evaluated],
+                  'validation': [round(v, 4) for v in validation_scores],
+                  'dna': [encode(dna) for dna in genomes],
+                  'diversity': round(sum(spread(genomes, i) for i in range(len(GENES))) / len(GENES), 4)}
         history.append(record)
         if on_generation:
             on_generation(record)
         if generation == generations - 1:
-            return history, [dna for _, dna in scored]
+            return history, genomes
 
         def pick():
-            return max(rng.sample(scored, tournament), key=lambda x: x[0])[1]
-        children = [dna[:] for _, dna in scored[:elite]]
+            return max(rng.sample(adjusted, tournament), key=lambda x: x[0])[1]
+        children = [dna[:] for dna in genomes[:elite]]
         children += [[rng.random() for _ in GENES] for _ in range(immigrants)]
         while len(children) < population:
             mother, father = pick(), pick()
             child = [m if rng.random() < 0.5 else f for m, f in zip(mother, father)]
-            child = [min(1.0, max(0.0, g + rng.gauss(0, mutation_scale))) if rng.random() < mutation_rate else g
-                     for g in child]
+            child = [reflect(g + rng.gauss(0, mutation_scale)) if rng.random() < mutation_rate else g for g in child]
             children.append(child)
         pool = children
 
 
-def statistics_spread(scored, index):
-    values = [dna[index] for _, dna in scored]
+def spread(genomes, index):
+    values = [dna[index] for dna in genomes]
     mean = sum(values) / len(values)
     return math.sqrt(sum((v - mean) ** 2 for v in values) / len(values))
+
+
+def select_champions(genomes, assets, validation, count=5, max_correlation=0.5):
+    """Greedy: best validation score first, then the best whose weekly validation returns stay below
+    max_correlation in absolute value with every champion already chosen."""
+    scored = sorted(((*evaluate_genome(dna, assets, validation), dna) for dna in genomes), key=lambda x: -x[0])
+    chosen = []
+    for value, weekly, dna in scored:
+        z = standardize(weekly)
+        if all(abs(correlation(z, other)) < max_correlation for _, other, _ in chosen):
+            chosen.append((value, z, dna))
+        if len(chosen) == count:
+            break
+    return [(value, dna) for value, _, dna in chosen]
 
 
 def describe(dna):

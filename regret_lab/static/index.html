@@ -61,6 +61,7 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 .legend span.dash::before { background: repeating-linear-gradient(90deg, var(--c) 0 4px, transparent 4px 7px); }
 .legend span.band::before { height: 10px; background: var(--band); outline: 1px solid var(--border); }
 .legend span.ramp::before { width: 48px; height: 8px; background: linear-gradient(90deg, var(--lo), var(--mid), var(--hi)); }
+.legend span.ramp.rev::before { background: linear-gradient(90deg, var(--hi), var(--mid), var(--lo)); }
 .tip { position: absolute; pointer-events: none; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font-size: 12px; white-space: nowrap; display: none; z-index: 2; box-shadow: 0 4px 16px rgba(0,0,0,.25); }
 .tip div { display: flex; justify-content: space-between; gap: 14px; }
 .tip i { font-style: normal; color: var(--muted); }
@@ -101,7 +102,7 @@ footer a { color: var(--text-2); }
 <main>
   <header><a href="https://github.com/suprkco/Trading-strategies-analysis-regret-minimization">regret / evolution lab</a><span>computed by the Python core · not investment advice</span></header>
   <h1>Evolve strategy DNA, then let online learning decide whom to trust</h1>
-  <p class="lede">A genetic algorithm breeds 120 trading strategies, each encoded as 36 genes, on three US indices. The fittest survive, cross over and mutate for 60 generations. Champions are picked on a later validation window, frozen, then tested on a market they never saw, where Hedge and Fixed Share combine them day by day.</p>
+  <p class="lede">A genetic algorithm breeds 120 trading strategies, each encoded as 36 genes, on three US indices, five times with different seeds. The fittest survive, cross over and mutate for 60 generations. Decorrelated champions are picked on a later validation window, frozen, then tested on seven markets they never saw, where Hedge and Fixed Share combine them day by day.</p>
   <div class="tabs" role="tablist">
     <button role="tab" id="tabG" aria-selected="true" aria-controls="viewG">Genetic evolution · real indices</button>
     <button role="tab" id="tabS" aria-selected="false" aria-controls="viewS">Regret lab · synthetic regimes</button>
@@ -110,18 +111,19 @@ footer a { color: var(--text-2); }
   <section id="viewG" role="tabpanel" aria-labelledby="tabG">
     <h2 class="step">1 · Evolution <span id="trainLabel">training on NASDAQ Composite, S&amp;P 500, Dow Jones</span></h2>
     <div class="controls">
+      <label>Evolution seed<select id="gSeed"></select></label>
       <button type="button" class="primary" id="gPlay">Pause</button>
       <label>Speed<select id="gSpeed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option></select></label>
     </div>
     <div class="scrub"><input id="gScrub" type="range" min="0" max="59" value="0" aria-label="Generation"><output id="gOut">generation 0</output></div>
     <div class="stats">
-      <div class="stat"><small>Best training Sharpe</small><b id="gBest">–</b><i id="gMedian">median –</i></div>
+      <div class="stat"><small>Best training score</small><b id="gBest">–</b><i id="gMedian">median –</i></div>
       <div class="stat"><small>Same genome on validation</small><b id="gVal">–</b><i>2022-2023, unseen during breeding</i></div>
       <div class="stat"><small>Best validation in population</small><b id="gBestVal">–</b><i id="gBestValRank">–</i></div>
       <div class="stat"><small>Gene diversity</small><b id="gDiv">–</b><i>mean std of genes across players</i></div>
     </div>
     <div class="grid">
-      <section class="panel"><h3>Fitness across generations</h3><p>Annualised Sharpe after 5 bp costs. The gap between the lines is overfitting.</p>
+      <section class="panel"><h3>Fitness across generations</h3><p>Score = Sharpe − 2 × |max drawdown|, after volatility-dependent costs and short financing. The gap between the lines is overfitting.</p>
         <canvas id="cFit" data-h="280" aria-label="Best and median training Sharpe and best genome's validation Sharpe per generation"></canvas>
         <div class="legend"><span style="--c:var(--s1)">best training</span><span class="dash" style="--c:var(--s1)">median training</span><span style="--c:var(--s2)">best-trained genome on validation</span><span style="--c:var(--s3)">best validation in population</span></div>
         <div class="tip" id="tipFit"></div></section>
@@ -131,16 +133,18 @@ footer a { color: var(--text-2); }
         <div class="tip" id="tipDna"></div></section>
     </div>
 
-    <h2 class="step">2 · Frozen champions <span>top 5 by validation Sharpe in the final generation</span></h2>
+    <h2 class="step">2 · Frozen champions <span>best validation scores in the final generation, pairwise |correlation| &lt; 0.5</span></h2>
     <div class="cards" id="cards"></div>
 
     <h2 class="step">3 · Final test <span id="testLabel">on a market never seen</span></h2>
     <p class="error" id="testError" role="alert"></p>
     <div id="testBody">
       <div class="controls">
+        <label>Test market<select id="tMarket"></select></label>
         <button type="button" class="primary" id="tPlay">Pause</button>
         <label>Speed<select id="tSpeed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select></label>
       </div>
+      <p class="muted" id="seenNote" hidden></p>
       <div class="scrub"><input id="tScrub" type="range" min="1" max="2" value="1" aria-label="Trading day"><output id="tOut">–</output></div>
       <div class="grid">
         <section class="panel wide"><h3 id="priceTitle">Test index</h3><p>Daily close from FRED. The strategies only ever see closes up to the previous day.</p>
@@ -154,6 +158,18 @@ footer a { color: var(--text-2); }
       <div class="verdict" id="verdict"></div>
       <div class="panel"><h3>Out-of-sample scorecard</h3><div class="tablewrap"><table id="scoreTable"></table></div><p id="testNote" style="margin-top:8px"></p></div>
     </div>
+
+    <h2 class="step">4 · Every seed on every market <span id="sumLabel">annualised Sharpe, out of sample</span></h2>
+    <p class="error" id="sumError" role="alert"></p>
+    <div class="grid">
+      <section class="panel wide"><h3>Hedge minus buy &amp; hold</h3><p>Sharpe difference per evolution seed (columns) and test market (rows). Blue: Hedge did better. Click a cell to replay it.</p>
+        <canvas id="cSum" data-h="300" aria-label="Heatmap of Hedge Sharpe minus buy and hold Sharpe for each seed and market"></canvas>
+        <div class="legend"><span class="ramp rev">Hedge worse → better</span></div>
+        <div class="tip" id="tipSum"></div></section>
+      <section class="panel wide"><h3>Mean over seeds, 95% interval</h3><p>An interval that crosses zero means no reliable difference.</p>
+        <div class="tablewrap"><table id="sumTable"></table></div></section>
+    </div>
+    <div class="verdict" id="sumVerdict"></div>
   </section>
 
   <section id="viewS" role="tabpanel" aria-labelledby="tabS" hidden>
@@ -297,7 +313,9 @@ function player(state, playBtn, scrub, speedSel, rate) {
 
 // ---------- tab 1: genetic evolution ----------
 const G = { t: 0, n: 0, hover: null }, T = { t: 0, n: 0, hover: null };
-let evo = null, test = null, champColors = [];
+let evo = null, test = null, champColors = [], info = null, summaryData = null;
+const ALPH = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_';
+const gene = (code, c) => ALPH.indexOf(code[c]) / 63;
 const GROUPS = [['calm weights', 8], ['stress weights', 8], ['periods', 7], ['risk & execution', 10]];
 
 function drawEvolution() {
@@ -312,7 +330,7 @@ function drawEvolution() {
 
   const { ctx, w, h: H } = setup($('cDna')), top = 16, rows = h[at].dna.length, genes = evo.genes.length;
   const cw = w / genes, rh = (H - top) / rows;
-  h[at].dna.forEach((dna, r) => dna.forEach((v, c) => { ctx.fillStyle = diverging(v / 99); ctx.fillRect(c * cw, top + r * rh, Math.ceil(cw), Math.ceil(rh)); }));
+  h[at].dna.forEach((code, r) => { for (let c = 0; c < genes; c++) { ctx.fillStyle = diverging(gene(code, c)); ctx.fillRect(c * cw, top + r * rh, Math.ceil(cw), Math.ceil(rh)); } });
   let c0 = 0; ctx.font = FONT; ctx.textAlign = 'left';
   GROUPS.forEach(([name, size], k) => {
     ctx.fillStyle = css('--muted'); ctx.fillText(w > 420 || k % 2 === 0 ? name : '', c0 * cw + 2, 11);
@@ -337,13 +355,14 @@ function dnaStrip(canvas, dna) {
 
 function buildCards() {
   champColors = ['--s2', '--s3', '--s4', '--s5', '--s6'];
-  $('cards').innerHTML = evo.champions.map((c, i) => `<div class="card" style="--c:var(${champColors[i]})"><b>${c.id}</b><p>${c.traits}</p><canvas aria-label="DNA of ${c.id}"></canvas><small>Sharpe train ${c.train_sharpe.toFixed(2)} → valid ${c.validation_sharpe.toFixed(2)}</small></div>`).join('');
+  $('cards').innerHTML = evo.champions.map((c, i) => `<div class="card" style="--c:var(${champColors[i]})"><b>${c.id}</b><p>${c.traits}</p><canvas aria-label="DNA of ${c.id}"></canvas><small>score train ${c.train_score.toFixed(2)} → valid ${c.validation_score.toFixed(2)}</small></div>`).join('');
   [...$('cards').querySelectorAll('canvas')].forEach((cv, i) => dnaStrip(cv, evo.champions[i].dna));
 }
 
 function equity(daily) { let e = 100; return daily.map(r => (e *= 1 + r)); }
 function testSeries() {
-  const experts = test.experts.map((e, i) => ({ name: e.name, eq: equity(e.daily), color: i < 5 ? css(champColors[i]) : e.name === 'cash' ? css('--neutral') : css('--s8'), w: e.name === 'buy & hold' ? 2.5 : 1.5, alpha: i < 5 ? .85 : 1, dash: e.name === 'cash' ? [4, 3] : [] }));
+  const k = test.experts.length - 2;
+  const experts = test.experts.map((e, i) => ({ name: e.name, eq: equity(e.daily), color: i < k ? css(champColors[i]) : e.name === 'cash' ? css('--neutral') : css('--s8'), w: e.name === 'buy & hold' ? 2.5 : 1.5, alpha: i < k ? .85 : 1, dash: e.name === 'cash' ? [4, 3] : [] }));
   const learners = [['Hedge', test.learners.hedge, css('--s1')], ['Fixed Share', test.learners.fixed_share, css('--s7')]].map(([name, l, color]) => ({ name, eq: equity(l.daily), color, w: 3, alpha: 1, dash: [], l }));
   return { experts, learners };
 }
@@ -368,11 +387,12 @@ function drawTest() {
 function ctx_baseline(f) { const { ctx, x, y, pad, w } = f, yy = Math.round(y(100)) + .5; ctx.save(); ctx.strokeStyle = css('--muted'); ctx.beginPath(); ctx.moveTo(pad.l, yy); ctx.lineTo(w - pad.r, yy); ctx.stroke(); ctx.restore(); }
 
 function buildTest() {
-  T.n = test.dates.length; $('tScrub').max = T.n; T.t = reduced ? T.n - 1 : 0; T.set(false);
-  // Start the test replay when it scrolls into view, so it is not over before anyone looks.
-  if (!reduced) new IntersectionObserver((entries, o) => { if (entries[0].isIntersecting) { T.set(true); o.disconnect(); } }, { threshold: .3 }).observe($('cEquity'));
+  T.n = test.dates.length; $('tScrub').max = T.n; T.t = reduced ? T.n - 1 : 0; T.set(!reduced && !!T.seen);
+  // Start the first replay when it scrolls into view, so it is not over before anyone looks.
+  if (!reduced && !T.seen) new IntersectionObserver((entries, o) => { if (entries[0].isIntersecting) { T.seen = true; T.set(true); o.disconnect(); } }, { threshold: .3 }).observe($('cEquity'));
   TS = testSeries();
-  $('testLabel').textContent = `on ${test.title}, ${test.dates[0]} → ${test.dates[T.n - 1]} (never seen while breeding)`;
+  $('testLabel').textContent = `on ${test.title}, ${test.dates[0]} → ${test.dates[T.n - 1]}, champions of seed ${test.seed}`;
+  $('seenNote').hidden = !test.previously_seen; $('seenNote').textContent = test.previously_seen ? `Caveat: this market was ${test.previously_seen}, so it is not a clean held-out test.` : '';
   $('priceTitle').textContent = `${test.title} · the market the final simulation is validated on`;
   $('legEquity').innerHTML = [...TS.learners, ...TS.experts].map(s => `<span class="${s.dash.length ? 'dash' : ''}" style="--c:${s.color}">${s.name}</span>`).join('');
   $('tBars').innerHTML = '<div class="wrow whead"><span>expert</span><span>Hedge ■ / Fixed Share ■</span><span>Hedge</span><span>F.Share</span></div>' +
@@ -380,13 +400,13 @@ function buildTest() {
   const rowsT = [...TS.learners.map(s => [s.name, s.l]), ...test.experts.map(e => [e.name, e])];
   $('scoreTable').innerHTML = '<tr><th>policy</th><th>total return</th><th>Sharpe</th><th>max drawdown</th></tr>' +
     rowsT.map(([n, s]) => `<tr><td>${n}</td><td>${pct(s.total_return)}</td><td>${s.sharpe.toFixed(2)}</td><td>${pct(s.max_drawdown)}</td></tr>`).join('');
-  const champs = test.experts.slice(0, 5), bh = test.experts.find(e => e.name === 'buy & hold'), hedge = test.learners.hedge;
+  const champs = test.experts.slice(0, -2), bh = test.experts.find(e => e.name === 'buy & hold'), hedge = test.learners.hedge, nc = champs.length;
   const bestChamp = champs.reduce((a, b) => (b.sharpe > a.sharpe ? b : a));
   const beatBH = champs.filter(c => c.sharpe > bh.sharpe).length, hedgeBeats = champs.filter(c => hedge.sharpe > c.sharpe).length;
-  $('verdict').innerHTML = `<b>${beatBH === 0 ? 'No evolved champion beat simply holding the index.' : `${beatBH} of 5 champions beat buy & hold on Sharpe.`}</b> ` +
+  $('verdict').innerHTML = `<b>${beatBH === 0 ? `No champion beat simply holding ${test.title}.` : `${beatBH} of ${nc} champions beat buy & hold on Sharpe.`}</b> ` +
     `Best champion ${bestChamp.name}: Sharpe ${bestChamp.sharpe.toFixed(2)} vs buy & hold ${bh.sharpe.toFixed(2)}. ` +
-    `Hedge beat ${hedgeBeats} of 5 champions without knowing in advance which would do well (Sharpe ${hedge.sharpe.toFixed(2)}). ` +
-    `Breeding on 2016-2021 US data produced strategies that look excellent in-sample and transfer poorly: the honest result of a large search space.`;
+    `Hedge beat ${hedgeBeats} of ${nc} champions without knowing in advance which would do well (Sharpe ${hedge.sharpe.toFixed(2)}, Fixed Share ${test.learners.fixed_share.sharpe.toFixed(2)}). ` +
+    `One seed on one market is an anecdote: section 4 shows all of them.`;
   $('testNote').textContent = `Hedge η=${hedge.eta.toFixed(4)}; Fixed Share η=${test.learners.fixed_share.eta.toFixed(4)}, α=${test.learners.fixed_share.alpha.toFixed(4)}; rewards bounded at ±${test.reward_bound * 100}% per day (${test.clipped_rewards} clipped). The window grows with each new FRED close; champions stay frozen.`;
 }
 
@@ -397,7 +417,7 @@ $('cDna').addEventListener('pointermove', e => {
   if (!evo) return; const rect = $('cDna').getBoundingClientRect(), g = G.hover ?? Math.floor(G.t);
   const c = Math.floor((e.clientX - rect.left) / rect.width * evo.genes.length), r = Math.floor((e.clientY - rect.top - 16) / (rect.height - 16) * evo.history[g].dna.length);
   const tip = $('tipDna'); if (r < 0 || c < 0 || c >= evo.genes.length) { tip.style.display = 'none'; return; }
-  tip.innerHTML = `<div><b>player rank ${r + 1}</b><i>gen ${g}</i></div><div><span>${evo.genes[c].replace(/_/g, ' ')}</span><span>${(evo.history[g].dna[r][c] / 99).toFixed(2)}</span></div><div><span>train Sharpe</span><span>${evo.history[g].train[r].toFixed(2)}</span></div><div><span>valid Sharpe</span><span>${evo.history[g].validation[r].toFixed(2)}</span></div>`;
+  tip.innerHTML = `<div><b>player rank ${r + 1}</b><i>gen ${g}</i></div><div><span>${evo.genes[c].replace(/_/g, ' ')}</span><span>${gene(evo.history[g].dna[r], c).toFixed(2)}</span></div><div><span>train score</span><span>${evo.history[g].train[r].toFixed(2)}</span></div><div><span>valid score</span><span>${evo.history[g].validation[r].toFixed(2)}</span></div>`;
   tip.style.display = 'block'; tip.style.left = Math.min(e.clientX - rect.left + 14, rect.width - tip.offsetWidth) + 'px'; tip.style.top = (e.clientY - rect.top + 30) + 'px';
 });
 $('cDna').addEventListener('pointerleave', () => { $('tipDna').style.display = 'none'; });
@@ -477,17 +497,98 @@ $('tabG').addEventListener('click', () => show('G')); $('tabS').addEventListener
 let last = 0;
 function tick(now) {
   const dt = Math.min(64, now - (last || now)); last = now;
-  if (!$('viewG').hidden) { G.advance(dt); T.advance(dt); drawEvolution(); drawTest(); } else { S.advance(dt); sDraw(); }
+  if (!$('viewG').hidden) { G.advance(dt); T.advance(dt); drawEvolution(); drawTest(); drawSummary(); } else { S.advance(dt); sDraw(); }
   requestAnimationFrame(tick);
 }
 addEventListener('keydown', e => { if (e.code === 'Space' && !/INPUT|SELECT|BUTTON/.test(e.target.tagName)) { e.preventDefault(); ($('viewG').hidden ? $('sPlay') : $('gPlay')).click(); } });
 addEventListener('resize', () => evo && buildCards());
+async function loadSeed() {
+  const seed = $('gSeed').value, run = info.runs.find(r => String(r.seed) === seed);
+  const body = await (await fetch('/api/evolution?seed=' + seed)).json();
+  evo = { history: body.history, genes: info.genes, champions: run.champions };
+  G.n = evo.history.length; $('gScrub').max = G.n - 1; G.t = reduced ? G.n - 1 : 0; G.set(!reduced); buildCards();
+}
+async function loadTest() {
+  $('testError').textContent = '';
+  try {
+    const q = new URLSearchParams({ seed: $('gSeed').value, market: $('tMarket').value });
+    const res = await fetch('/api/test?' + q), body = await res.json(); if (!res.ok) throw new Error(body.error);
+    test = body; $('testBody').hidden = false; buildTest();
+  } catch (e) { $('testError').textContent = 'Final test unavailable: ' + e.message; $('testBody').hidden = true; }
+}
+const sumLayout = { l: 150, t: 22, compact: false };
+const shortName = title => title.replace('Dow Jones ', 'DJ ').replace(' (Coinbase)', '');
+function drawSummary() {
+  if (!summaryData) return;
+  const { ctx, w, h } = setup($('cSum')), markets = summaryData.markets, seeds = summaryData.seeds;
+  sumLayout.compact = w < 520; sumLayout.l = sumLayout.compact ? 92 : 150;
+  const cw = (w - sumLayout.l) / seeds.length, rh = (h - sumLayout.t) / markets.length;
+  const diff = (m, s) => { const c = summaryData.cells.find(x => x.market === m && x.seed === s); return c ? c.hedge - c.buy_hold : null; };
+  const scale = Math.max(.5, ...summaryData.cells.map(c => Math.abs(c.hedge - c.buy_hold)));
+  ctx.font = FONT;
+  seeds.forEach((s, j) => { ctx.fillStyle = css('--muted'); ctx.textAlign = 'center'; ctx.fillText((sumLayout.compact ? '' : 'seed ') + s, sumLayout.l + (j + .5) * cw, 14); });
+  markets.forEach((m, i) => {
+    ctx.fillStyle = css('--text-2'); ctx.textAlign = 'right'; ctx.fillText((sumLayout.compact ? shortName(m.title).replace('Transportation', 'Transp.').replace('Utilities', 'Util.').replace(' crude oil', '').replace('JPY per USD', 'USD/JPY') : shortName(m.title)) + (m.previously_seen ? ' *' : ''), sumLayout.l - 8, sumLayout.t + (i + .5) * rh + 4);
+    seeds.forEach((s, j) => {
+      const v = diff(m.market, s), x = sumLayout.l + j * cw, y = sumLayout.t + i * rh;
+      ctx.fillStyle = v == null ? css('--grid') : diverging(.5 - v / scale / 2); ctx.fillRect(x + 1, y + 1, cw - 2, rh - 2);
+      if (v != null) { ctx.fillStyle = Math.abs(v / scale) > .55 ? '#fff' : css('--text'); ctx.textAlign = 'center'; ctx.fillText(sgn(v, sumLayout.compact ? 1 : 2), x + cw / 2, y + rh / 2 + 4); }
+      if ($('tMarket').value === m.market && $('gSeed').value === String(s)) { ctx.strokeStyle = css('--text'); ctx.lineWidth = 2; ctx.strokeRect(x + 2, y + 2, cw - 4, rh - 4); }
+    });
+  });
+}
+function cellAt(e) {
+  const rect = $('cSum').getBoundingClientRect(), x = e.clientX - rect.left, y = e.clientY - rect.top;
+  const j = Math.floor((x - sumLayout.l) / ((rect.width - sumLayout.l) / summaryData.seeds.length)), i = Math.floor((y - sumLayout.t) / ((rect.height - sumLayout.t) / summaryData.markets.length));
+  if (i < 0 || j < 0 || i >= summaryData.markets.length || j >= summaryData.seeds.length) return null;
+  const m = summaryData.markets[i], s = summaryData.seeds[j];
+  return { m, s, c: summaryData.cells.find(c => c.market === m.market && c.seed === s), x, y };
+}
+$('cSum').addEventListener('pointermove', e => {
+  if (!summaryData) return; const hit = cellAt(e), tip = $('tipSum');
+  if (!hit || !hit.c) { tip.style.display = 'none'; return; }
+  const c = hit.c;
+  tip.innerHTML = `<div><b>${hit.m.title}</b><i>seed ${hit.s}</i></div>` + [['Hedge', c.hedge], ['Fixed Share', c.fixed_share], ['buy & hold', c.buy_hold], ['best champion', c.best_champion], ['mean champion', c.mean_champion]].map(([k, v]) => `<div><span>${k}</span><span>${v.toFixed(2)}</span></div>`).join('') + `<div><span>champions > buy & hold</span><span>${c.champions_beating_buy_hold} / ${c.champions}</span></div>`;
+  tip.style.display = 'block'; tip.style.left = Math.min(hit.x + 14 + $('cSum').offsetLeft, $('cSum').offsetLeft + $('cSum').clientWidth - tip.offsetWidth) + 'px'; tip.style.top = (hit.y + $('cSum').offsetTop + 16) + 'px';
+});
+$('cSum').addEventListener('pointerleave', () => { $('tipSum').style.display = 'none'; });
+$('cSum').addEventListener('click', e => {
+  const hit = summaryData && cellAt(e); if (!hit) return;
+  const seedChanged = $('gSeed').value !== String(hit.s);
+  $('gSeed').value = hit.s; $('tMarket').value = hit.m.market;
+  (seedChanged ? loadSeed() : Promise.resolve()).then(loadTest);
+  $('cPrice').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'center' });
+});
+function buildSummary() {
+  const ci = x => x.half_width == null ? sgn(x.mean) : `${sgn(x.mean)} ± ${x.half_width.toFixed(2)}`;
+  $('sumTable').innerHTML = '<tr><th>market</th><th>buy &amp; hold</th><th>Hedge − B&amp;H</th><th>champions − B&amp;H</th><th>Hedge − champions</th></tr>' +
+    summaryData.markets.map(m => `<tr><td>${m.title}${m.previously_seen ? ' *' : ''}</td><td>${m.buy_hold.toFixed(2)}</td><td>${ci(m.hedge_minus_buy_hold)}</td><td>${ci(m.mean_champion_minus_buy_hold)}</td><td>${ci(m.hedge_minus_mean_champion)}</td></tr>`).join('');
+  const side = x => x.half_width == null ? 0 : x.mean - x.half_width > 0 ? 1 : x.mean + x.half_width < 0 ? -1 : 0;
+  const ms = summaryData.markets, better = ms.filter(m => side(m.hedge_minus_buy_hold) > 0).length, worse = ms.filter(m => side(m.hedge_minus_buy_hold) < 0).length;
+  const overChamps = ms.filter(m => side(m.hedge_minus_mean_champion) > 0).length, underChamps = ms.filter(m => side(m.hedge_minus_mean_champion) < 0).length;
+  const m0 = ms[0];
+  $('sumLabel').textContent = `${summaryData.seeds.length} seeds × ${ms.length} markets, ${m0.start} → ${m0.end}, annualised Sharpe`;
+  $('sumVerdict').innerHTML = `<b>Against buy &amp; hold, Hedge is reliably better on ${better} of ${ms.length} markets and reliably worse on ${worse}.</b> ` +
+    `Against the average champion it is reliably better on ${overChamps} and worse on ${underChamps}; the rest are within noise. ` +
+    `* Nikkei 225 served as the test market of an earlier version, so it is not clean out-of-sample evidence.`;
+  drawSummary();
+}
 (async () => {
-  try { evo = await (await fetch('/api/evolution')).json(); G.n = evo.history.length; $('gScrub').max = G.n - 1; G.t = reduced ? G.n - 1 : 0; G.set(!reduced); buildCards(); }
-  catch (e) { $('testError').textContent = 'Evolution data unavailable.'; }
-  try { const res = await fetch('/api/test'), body = await res.json(); if (!res.ok) throw new Error(body.error); test = body; buildTest(); }
-  catch (e) { $('testError').textContent = 'Final test unavailable: ' + e.message; $('testBody').hidden = true; }
+  try {
+    info = await (await fetch('/api/manifest')).json();
+    $('gSeed').innerHTML = info.runs.map(r => `<option value="${r.seed}">${r.seed}</option>`).join('');
+    await loadSeed();
+  } catch (e) { $('testError').textContent = 'Evolution data unavailable.'; return; }
+  try {
+    const res = await fetch('/api/summary'), body = await res.json(); if (!res.ok) throw new Error(body.error);
+    summaryData = body;
+    $('tMarket').innerHTML = body.markets.map(m => `<option value="${m.market}">${m.title}${m.previously_seen ? ' (seen before)' : ''}</option>`).join('');
+    $('tMarket').value = body.markets.find(m => !m.previously_seen)?.market || body.markets[0].market;
+    buildSummary(); await loadTest();
+  } catch (e) { $('sumError').textContent = 'Market data unavailable: ' + e.message; $('testBody').hidden = true; }
 })();
+$('gSeed').addEventListener('change', () => loadSeed().then(() => summaryData && loadTest()));
+$('tMarket').addEventListener('change', loadTest);
 if (new URLSearchParams(location.search).get('tab') === 'synthetic') show('S');
 requestAnimationFrame(tick);
 </script>
